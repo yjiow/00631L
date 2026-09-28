@@ -57,7 +57,7 @@ export async function navigateTo(viewName) {
 
             // 5. 觸發各視圖特定模組初始化
             if (viewName === 'home') {
-                runTypewriter('掌控財務，解鎖你的模擬人生。', document.getElementById('typewriter-text'));
+                runTypewriter('模擬過去，掌控您的財務未來。', document.getElementById('typewriter-text'));
                 initBacktest();
             }
         }, 150);

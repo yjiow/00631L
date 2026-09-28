@@ -760,6 +760,16 @@ body:has(.float-menu) footer { padding-bottom: 5.5rem; }
 
 .modal-close:hover { color: var(--neon-pink); }
 
+/* 關閉圖示：CSS mask 繪製 ✕（views 內不寫 inline <svg>） */
+.modal-close-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 .modal-chart-wrapper { height: 500px; position: relative; }
 
 @media (max-width: 768px) {
@@ -795,3 +805,20 @@ body:has(.float-menu) footer { padding-bottom: 5.5rem; }
 .winrate-range .positive { color: var(--color-up); }
 .winrate-range .negative { color: var(--color-down); }
 .winrate-na { color: var(--text-faint); }
+
+/* ===== 關於我（views/about.html） ===== */
+.about-body { flex: 1; min-width: 280px; font-size: 0.9rem; line-height: 1.8; color: var(--text-secondary); }
+.about-section { margin-bottom: 28px; }
+.about-section p { margin-bottom: 12px; }
+.about-heading { margin-bottom: 10px; font-size: 0.95rem; font-weight: 500; color: var(--text-card-title); }
+.about-list,
+.about-log { list-style: none; padding: 0; }
+.about-list li { position: relative; padding-left: 16px; margin-bottom: 6px; }
+.about-list li::before { content: ""; position: absolute; left: 2px; top: 0.75em; width: 5px; height: 5px; border-radius: 50%; background: var(--neon-blue); opacity: 0.7; }
+.about-list strong { font-weight: 500; color: var(--text-primary); }
+.about-num { font-family: var(--font-num); color: var(--text-primary); }
+.about-log li { margin-bottom: 6px; }
+.about-stamp { margin-right: 10px; font-family: 'Share Tech Mono', monospace; color: var(--neon-blue); }
+.about-stack { border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 14px; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-blue); }
+.about-name { font-size: 0.95rem; font-weight: 500; color: var(--text-card-title); }
+.about-note { font-size: 0.8rem; color: var(--text-muted); }
