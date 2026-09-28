@@ -1,53 +1,6 @@
-<!-- views/dca.html — 定期定額回測介面 -->
-<div class="layout-grid">
-
-    <!-- 左側：參數控制台 -->
-    <div class="panel-card">
-        <div class="panel-title">定期定額參數設定 (MATRIX_INPUT)</div>
-
-        <div class="input-group">
-            <div class="input-label">
-                <span>每月投入金額 (TWD)</span>
-                <span class="input-value" id="val-amount">10,000</span>
-            </div>
-            <input type="range" id="input-amount" min="1000" max="50000" step="1000" value="10000">
-        </div>
-
-        <div class="input-group">
-            <div class="input-label">
-                <span>預期年報酬率 (%)</span>
-                <span class="input-value" id="val-rate">6.0</span>
-            </div>
-            <input type="range" id="input-rate" min="1" max="30" step="0.5" value="6">
-        </div>
-
-        <div class="input-group">
-            <div class="input-label">
-                <span>投資年期 (YEARS)</span>
-                <span class="input-value" id="val-years">20</span>
-            </div>
-            <input type="range" id="input-years" min="1" max="40" step="1" value="20">
-        </div>
-
-        <!-- 即時數據看板 -->
-        <div class="data-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="data-box">
-                <label>累積投入本金</label>
-                <span id="res-principal">--</span>
-            </div>
-            <div class="data-box">
-                <label>預期滾存總資產</label>
-                <span id="res-total" style="color: var(--neon-blue);">--</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 右側：動態圖表 -->
-    <div class="panel-card">
-        <div class="panel-title">資產成長軌跡即時渲染 (REALTIME_RENDER)</div>
-        <div style="position: relative; width: 100%; height: 340px;">
-            <canvas id="dcaChart"></canvas>
-        </div>
-    </div>
-
+<!-- views/dca.html — 定期定額模擬（建置中） -->
+<div class="panel-card" style="max-width: 850px; margin: 20px auto; padding: 40px;">
+    <div class="panel-title">定期定額模擬 (DCA_SIM)</div>
+    <p style="color: var(--text-secondary); line-height: 1.8;">投資者以自己的儲蓄金額定期定額投入，觀察長期複利下的資產成長。</p>
+    <p style="color: var(--text-muted); margin-top: 16px;">功能建置中 (UNDER_CONSTRUCTION)</p>
 </div>

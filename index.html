@@ -22,10 +22,15 @@
         <div class="logo" data-view="home">正2資產模擬實驗室</div>
         <ul class="menu">
             <li class="menu-item"><a data-view="home">策略概覽</a></li>
-            <li class="menu-item"><a data-view="dca">定期定額回測</a></li>
-            <li class="menu-item"><a data-view="self-control">自我掌握規劃</a></li>
+            <li class="menu-item"><a data-view="dca">定期定額模擬</a></li>
+            <li class="menu-item"><a data-view="loan">貸款投資模擬</a></li>
+            <li class="menu-item"><a data-view="trade">自主實戰模擬</a></li>
             <li class="menu-item"><a data-view="about">關於我</a></li>
         </ul>
+        <!-- 漢堡按鈕：選單放不下時由 navCollapse.js 顯示 -->
+        <button class="nav-toggle" type="button" aria-label="開啟選單" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path class="bar-top" d="M4 7h16"/><path class="bar-mid" d="M4 12h16"/><path class="bar-bot" d="M4 17h16"/></svg>
+        </button>
     </nav>
 
     <!-- 主視圖注入區（由 router.js 動態載入 views/*.html） -->

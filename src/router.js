@@ -3,7 +3,6 @@
  * SPA 路由管理：非同步載入 views/*.html 並執行過場與初始化邏輯
  */
 
-import { initDCA } from './calculator.js';
 import { initBacktest } from './uiController.js';
 import { updateNavIndicator } from './navIndicator.js';
 
@@ -22,40 +21,6 @@ function runTypewriter(text, el, speed = 50) {
             clearInterval(timer);
         }
     }, speed);
-}
-
-// 初始化自我掌握滑桿連動
-function initSelfControl() {
-    const curAgeInput = document.getElementById('input-cur-age');
-    const retAgeInput = document.getElementById('input-retire-age');
-    const savingsInput = document.getElementById('input-savings');
-
-    const valCurAge = document.getElementById('val-cur-age');
-    const valRetAge = document.getElementById('val-retire-age');
-    const valSavings = document.getElementById('val-savings');
-    const resTimespan = document.getElementById('res-timespan');
-
-    if (!curAgeInput || !retAgeInput) return;
-
-    function update() {
-        const cur = parseInt(curAgeInput.value);
-        const ret = Math.max(cur + 1, parseInt(retAgeInput.value));
-        retAgeInput.value = ret;
-
-        valCurAge.innerText = cur;
-        valRetAge.innerText = ret;
-        if (valSavings && savingsInput) {
-            valSavings.innerText = parseInt(savingsInput.value).toLocaleString();
-        }
-        if (resTimespan) {
-            resTimespan.innerText = `${ret - cur} 年`;
-        }
-    }
-
-    curAgeInput.addEventListener('input', update);
-    retAgeInput.addEventListener('input', update);
-    if (savingsInput) savingsInput.addEventListener('input', update);
-    update();
 }
 
 // 核心導航函式
@@ -91,13 +56,9 @@ export async function navigateTo(viewName) {
             viewStage.classList.add('fade-in');
 
             // 5. 觸發各視圖特定模組初始化
-            if (viewName === 'dca') {
-                initDCA();
-            } else if (viewName === 'home') {
+            if (viewName === 'home') {
                 runTypewriter('掌控財務，解鎖你的模擬人生。', document.getElementById('typewriter-text'));
                 initBacktest();
-            } else if (viewName === 'self-control') {
-                initSelfControl();
             }
         }, 150);
 
