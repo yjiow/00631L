@@ -1,0 +1,142 @@
+<!-- views/home.html — 00631L / 0050 績效對比與策略回測 -->
+<div class="hero-panel">
+    <h1 class="hero-title">00631L 與 0050<br><span>績效對比與策略分析</span></h1>
+    <p id="typewriter-text" class="hero-typewriter"><!-- 由 JS 打字機動態填入 --></p>
+    <p class="hero-desc">用 2000 年後的歷史行情，Debug 你的長期投資配置，提早規劃您的退休藍圖。</p>
+</div>
+
+<!-- 三大策略績效卡 -->
+<div class="dashboard-grid">
+    <div class="panel-card">
+        <div class="stat-label">元大台灣50正2 (00631L)</div>
+        <div class="card-metrics">
+            <div class="metric-item">
+                <div class="metric-label">累積報酬</div>
+                <div id="roi-00631" class="stat-value">---</div>
+                <div id="final-00631" class="stat-final"></div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。</span></span></div>
+                <div id="mdd-00631" class="stat-value negative">---</div>
+                <div id="mdd-period-00631" class="stat-final"></div>
+            </div>
+        </div>
+    </div>
+    <div class="panel-card">
+        <div class="stat-label">00631L 50/50 20%再平衡策略 <button class="magnify-btn" id="btn-5050-info" title="策略說明"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button></div>
+        <div class="card-metrics">
+            <div class="metric-item">
+                <div class="metric-label">累積報酬</div>
+                <div id="roi-5050" class="stat-value">---</div>
+                <div id="final-5050" class="stat-final"></div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。</span></span></div>
+                <div id="mdd-5050" class="stat-value negative">---</div>
+                <div id="mdd-period-5050" class="stat-final"></div>
+            </div>
+        </div>
+    </div>
+    <div class="panel-card">
+        <div class="stat-label">元大台灣50 (0050) 不含股息</div>
+        <div class="card-metrics">
+            <div class="metric-item">
+                <div class="metric-label">累積報酬</div>
+                <div id="roi-0050" class="stat-value">---</div>
+                <div id="final-0050" class="stat-final"></div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。</span></span></div>
+                <div id="mdd-0050" class="stat-value negative">---</div>
+                <div id="mdd-period-0050" class="stat-final"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 資產路徑圖 -->
+<div class="panel-card">
+    <div class="panel-title">策略績效回測：從 100 元開始的資產路徑 (EQUITY_CURVE)</div>
+    <div class="chart-wrapper">
+        <canvas id="mainChart"></canvas>
+    </div>
+    <p class="chart-note">※ 歷史回測不代表未來績效</p>
+
+    <div class="features">
+        <div class="feature-item">
+            <h3>複利演算</h3>
+            <p>自動計算每日漲跌幅的連乘效果，反映最真實的長期持有表現。</p>
+        </div>
+        <div class="feature-item">
+            <h3>歷史回測</h3>
+            <p>支援 2000 年後的歷史數據分析，洞察不同經濟週期下的標的走勢。</p>
+        </div>
+        <div class="feature-item">
+            <h3>模擬資料</h3>
+            <p>當歷史資料不足時，使用大盤的每日漲跌幅推算對應的 00631L 與 0050 漲跌幅。</p>
+        </div>
+    </div>
+</div>
+
+<!-- 持有期間勝率（winRatePanel.js，整塊可移除） -->
+<div class="panel-card winrate-card">
+    <div class="panel-title">持有越久，勝率越高 (HOLDING_WIN_RATE)</div>
+    <p class="winrate-sub"><span id="winratePeriod"></span><br>任一交易日進場、持有 N 年後的賺錢機率；最差 / 最好為年化報酬 · 區間不足 N 年顯示「—」</p>
+    <div class="winrate-wrap">
+        <table class="winrate-table" id="winrateTable"></table>
+    </div>
+</div>
+
+<!-- 浮動日期區間選單 -->
+<div class="float-menu">
+    <div class="float-panel" id="floatPanel" style="display:none">
+        <div class="float-panel-title">日期區間</div>
+        <div class="year-range-display">
+            <div class="year-range-col">
+                <div class="year-range-label">起始</div>
+                <div class="year-range-val" id="startYearLabel">2000</div>
+                <div class="year-range-date" id="startDateLabel">01/01</div>
+            </div>
+            <span class="year-range-sep">～</span>
+            <div class="year-range-col">
+                <div class="year-range-label">結束</div>
+                <div class="year-range-val" id="endYearLabel">2026</div>
+                <div class="year-range-date" id="endDateLabel">12/31</div>
+            </div>
+        </div>
+        <div class="year-slider-group">
+            <span class="slider-sub-label">起始</span>
+            <input type="range" class="year-slider" id="startSlider" min="2000" max="2026" value="2000" step="1">
+        </div>
+        <div class="year-slider-group">
+            <span class="slider-sub-label">結束</span>
+            <input type="range" class="year-slider" id="endSlider" min="2000" max="2026" value="2026" step="1">
+        </div>
+        <hr class="float-divider">
+        <div class="year-quick-presets">
+            <button class="year-quick-btn active" data-start="2000" data-end="2026">全部</button>
+            <button class="year-quick-btn" data-start="2000" data-end="2026" data-start-date="2000-02-17">網路泡沫</button>
+            <button class="year-quick-btn" data-start="2008" data-end="2026" data-start-date="2008-05-19">金融危機</button>
+            <button class="year-quick-btn" data-start="2020" data-end="2026" data-start-date="2020-01-14">新冠疫情</button>
+            <button class="year-quick-btn" data-start="2024" data-end="2026" data-start-date="2024-07-11">疫後 -> 關稅</button>
+            <button class="year-quick-btn" data-start="2026" data-end="2026">今年</button>
+        </div>
+    </div>
+    <button class="float-trigger">
+        <span class="float-trigger-icon">📅</span>
+        <span class="float-trigger-label">2000～2026</span>
+    </button>
+</div>
+
+<!-- 50/50 詳細圖表 Modal -->
+<div id="modal-5050" class="modal-overlay" style="display:none">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title">50/50 20%再平衡策略：00631L 股票 vs 現金</div>
+            <button class="modal-close" id="modal-5050-close">✕</button>
+        </div>
+        <div class="modal-chart-wrapper">
+            <canvas id="chart5050Detail"></canvas>
+        </div>
+    </div>
+</div>

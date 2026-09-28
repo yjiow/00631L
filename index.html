@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正2資產模擬實驗室｜退休不靠運氣，靠精算</title>
+
+    <!-- Google Fonts: 科技感等寬字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 全站共用樣式 -->
+    <link rel="stylesheet" href="src/style.css">
+
+</head>
+<body>
+
+    <!-- 導覽列 -->
+    <nav>
+        <div class="logo" data-view="home">正2資產模擬實驗室</div>
+        <ul class="menu">
+            <li class="menu-item"><a data-view="home">策略概覽</a></li>
+            <li class="menu-item"><a data-view="dca">定期定額回測</a></li>
+            <li class="menu-item"><a data-view="self-control">自我掌握規劃</a></li>
+            <li class="menu-item"><a data-view="about">關於我</a></li>
+        </ul>
+    </nav>
+
+    <!-- 主視圖注入區（由 router.js 動態載入 views/*.html） -->
+    <main id="view-stage"></main>
+
+    <!-- 頁尾 -->
+    <footer>© 2026 正2資產模擬實驗室 · 本站回測數據僅供參考，不構成投資建議，投資有風險請自行評估。</footer>
+
+    <!-- 應用程式進入點 -->
+    <script type="module" src="src/main.js"></script>
+
+</body>
+</html>
