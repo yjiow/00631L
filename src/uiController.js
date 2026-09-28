@@ -8,6 +8,7 @@ import { fetchBacktestData } from './database.js';
 import { calcBuyHold, calc5050, findMDDPeriod } from './calculator.js';
 import { renderBacktestChart, render5050DetailChart } from './chartRender.js';
 import { renderWinRate } from './winRatePanel.js';
+import { initFloatAutoHide } from './floatAutoHide.js';
 
 let currentStartDate = null;
 let currentEndDate   = null;
@@ -167,6 +168,7 @@ export function initBacktest() {
     const panel   = $('floatPanel');
     const trigger = document.querySelector('.float-trigger');
     if (!panel || !trigger) return;
+    initFloatAutoHide();
 
     const togglePanel = open => { panel.style.display = open ? 'block' : 'none'; };
     trigger.addEventListener('click', () => togglePanel(panel.style.display === 'none'));

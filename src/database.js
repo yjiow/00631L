@@ -5,28 +5,19 @@
 
 let cache = null; // 依日期排序的每日資料 [{ date, t2_close, tw50_close }]，載入一次後快取
 
-// 本地 JSON（日期 'YYYY/MM/DD'、漲跌幅 'x.xx%'）→ Map<'YYYY-MM-DD', 指數化收盤價（首日 100）>
-function toCloseMap(rows) {
-    const sorted = [...rows].sort((a, b) => a.日期.localeCompare(b.日期));
-    const map = new Map();
-    let close = 100;
-    sorted.forEach((r, i) => {
-        const pct = parseFloat(r.漲跌幅); // '-' → NaN
-        if (i > 0 && !isNaN(pct)) close *= 1 + pct / 100;
-        map.set(r.日期.replaceAll('/', '-'), close);
-    });
-    return map;
-}
+// 本地 JSON [{ date, close, adjClose, simulated? }] → Map<'YYYY-MM-DD', 還原股價>
+// 回測一律用 adjClose（分割、除息已還原；0050 為含息）；close 為當日真實股價，供日後顯示
+const toAdjMap = rows => new Map(rows.map(r => [r.date, r.adjClose]));
 
 // 轉成統一欄位格式；日後改接資料庫只需替換此函式
 async function loadAll() {
     if (cache) return cache;
     const [raw00631, raw0050] = await Promise.all([
-        fetch('data/00631_ALL.json').then(r => r.json()),
-        fetch('data/0050_ALL.json').then(r => r.json())
+        fetch('data/00631L.json').then(r => r.json()),
+        fetch('data/0050.json').then(r => r.json())
     ]);
-    const t2   = toCloseMap(raw00631);
-    const tw50 = toCloseMap(raw0050);
+    const t2   = toAdjMap(raw00631);
+    const tw50 = toAdjMap(raw0050);
     const dates = [...new Set([...t2.keys(), ...tw50.keys()])].sort();
     cache = dates.map(date => ({
         date,
