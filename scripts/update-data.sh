@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# 從證交所補抓新交易日，追加至 data/<代號>.json 並重算 adjClose
-# 用法：bash scripts/update-data.sh [資料夾，預設 data]
+# 從證交所補抓新交易日，追加至 public/data/<代號>.json 並重算 adjClose
+# 用法：bash scripts/update-data.sh [資料夾，預設 public/data]
 # 依賴：curl、jq、awk
 set -euo pipefail
 
-DATA_DIR="${1:-data}"
+DATA_DIR="${1:-public/data}"
 UA="Mozilla/5.0 (compatible; yj00631-updater)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

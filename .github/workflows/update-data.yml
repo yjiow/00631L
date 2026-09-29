@@ -17,13 +17,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: 補抓股價
-        run: bash scripts/update-data.sh data
+        run: bash scripts/update-data.sh public/data
 
       - name: 有變更才 commit + push
         run: |
-          if git diff --quiet data/; then echo "無新資料"; exit 0; fi
+          if git diff --quiet public/data/; then echo "無新資料"; exit 0; fi
           git config user.name "YingJer Liao"
           git config user.email "yjiow2008@gmail.com"
-          git add data/
-          git commit -m "資料：股價更新至 $(grep -o '"date":"[0-9-]*"' data/00631L.json | tail -1 | cut -d'"' -f4)"
+          git add public/data/
+          git commit -m "資料：股價更新至 $(grep -o '"date":"[0-9-]*"' public/data/00631L.json | tail -1 | cut -d'"' -f4)"
           git push
