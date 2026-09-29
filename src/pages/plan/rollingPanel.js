@@ -1,0 +1,83 @@
+/**
+ * rollingPanel.js
+ * 滾動起點分布：數字卡、長條圖、排序切換、快速選取（最差 / 中位 / 最好）
+ */
+
+import { renderRollingChart } from '../../charts/planCharts.js';
+import { fmtMoney, fmtRate, ym } from './planFormat.js';
+
+const $ = id => document.getElementById(id);
+
+let results = [];     // simulateRolling 結果（依時間）
+let byValue = [];     // 依期末資產由差到好
+let sortMode = 'time';
+let selectedIdx = null;
+let onSelect = () => {};
+
+const median = arr => {
+    const s = [...arr].sort((a, b) => a - b), n = s.length;
+    return n % 2 ? s[n >> 1] : (s[n / 2 - 1] + s[n / 2]) / 2;
+};
+
+// 快速選取對應的起點
+const PICKS = {
+    worst: () => byValue[0].startIdx,
+    median: () => byValue[(byValue.length - 1) >> 1].startIdx,
+    best: () => byValue.at(-1).startIdx
+};
+
+function draw() {
+    const items = sortMode === 'time' ? results : byValue;
+    renderRollingChart(items, selectedIdx, median(results.map(r => r.final)), select);
+}
+
+function select(startIdx) {
+    selectedIdx = startIdx;
+    draw();
+    onSelect(startIdx);
+}
+
+// 事件只綁一次（視圖重新載入時元素會重建，故以 dataset 標記）
+function bindControls() {
+    const sortEl = $('rolling-sort'), pickEl = $('rolling-pick');
+    if (sortEl.dataset.bound) return;
+    sortEl.dataset.bound = '1';
+    sortEl.addEventListener('click', e => {
+        const btn = e.target.closest('[data-sort]');
+        if (!btn) return;
+        sortMode = btn.dataset.sort;
+        sortEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        draw();
+    });
+    pickEl.addEventListener('click', e => {
+        const btn = e.target.closest('[data-pick]');
+        if (btn) select(PICKS[btn.dataset.pick]());
+    });
+}
+
+// 對照行：同一份計畫改投 0050（rs 為 0050 的 simulateRolling 結果）
+export function renderCompare(rs) {
+    if (!rs.length) { $('rolling-compare').textContent = ''; return; }
+    const ok = rs.filter(r => !r.brokeDate).length;
+    $('rolling-compare').textContent =
+        `對照：同一份計畫改投 0050，期末資產中位 ${fmtMoney(median(rs.map(r => r.final)))}、資金不斷鏈 ${(ok / rs.length * 100).toFixed(0)}%`;
+}
+
+// rs：simulateRolling 結果；years：模擬年數；handler(startIdx)：選中起點時呼叫；預設選中位數
+export function renderRolling(rs, years, handler) {
+    results = rs;
+    byValue = [...rs].sort((a, b) => a.final - b.final);
+    onSelect = handler;
+    bindControls();
+
+    const ok = rs.filter(r => !r.brokeDate).length;
+    $('rolling-desc').textContent =
+        `同一份計畫從 ${ym(rs[0].startDate)} 到 ${ym(rs.at(-1).startDate)} 每個月第一個交易日各跑 ${years} 年，共 ${rs.length} 個起點。`;
+    $('rs-success').textContent = `${(ok / rs.length * 100).toFixed(0)}%（${ok}/${rs.length}）`;
+    $('rs-worst').textContent = fmtMoney(byValue[0].final);
+    $('rs-median').textContent = fmtMoney(median(rs.map(r => r.final)));
+    $('rs-best').textContent = fmtMoney(byValue.at(-1).final);
+    $('rs-xirr').textContent = fmtRate(median(rs.map(r => r.xirr ?? -1)));
+
+    select(PICKS.median());
+}

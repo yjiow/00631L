@@ -1,6 +1,224 @@
-<!-- views/plan.html — 投資計畫模擬（建置中） -->
-<div class="panel-card" style="max-width: 850px; margin: 20px auto; padding: 40px;">
+<!-- views/plan.html — 投資計畫模擬 -->
+<div class="panel-card plan-params">
     <div class="panel-title">投資計畫模擬 (PLAN_SIM)</div>
-    <p style="color: var(--text-secondary); line-height: 1.8;">自由組合單筆投入、定期定額與貸款投資等參數，試算長期複利下的資產成長與現金流。</p>
-    <p style="color: var(--text-muted); margin-top: 16px;">功能建置中 (UNDER_CONSTRUCTION)</p>
+    <form id="plan-form" novalidate>
+        <!-- 頁籤列（手機版改為「步驟 n/5」左右切換） -->
+        <div class="plan-tabs" role="tablist">
+            <button type="button" class="plan-tab" data-tab="0" role="tab"><span class="plan-tab-no">1</span>基本設定<span class="plan-tab-status"></span></button>
+            <button type="button" class="plan-tab" data-tab="1" role="tab"><span class="plan-tab-no">2</span>現金流<span class="plan-tab-status"></span></button>
+            <button type="button" class="plan-tab" data-tab="2" role="tab"><span class="plan-tab-no">3</span>定期購買<span class="plan-tab-status"></span></button>
+            <button type="button" class="plan-tab" data-tab="3" role="tab"><span class="plan-tab-no">4</span>再平衡<span class="plan-tab-status"></span></button>
+            <button type="button" class="plan-tab" data-tab="4" role="tab"><span class="plan-tab-no">5</span>交易成本<span class="plan-tab-status"></span></button>
+        </div>
+        <div class="plan-steps-mobile">
+            <button type="button" class="plan-step-btn" data-step="-1" aria-label="上一步">‹</button>
+            <span id="plan-step-label"></span>
+            <button type="button" class="plan-step-btn" data-step="1" aria-label="下一步">›</button>
+        </div>
+
+        <!-- 1 基本設定（必填） -->
+        <section class="plan-pane" data-pane="0">
+            <p class="plan-pane-desc">標的 00631L。填完這一頁即可開始模擬，後面各頁皆有預設值。</p>
+            <div class="plan-form">
+                <label class="plan-field">
+                    <span>模擬年數</span>
+                    <input type="number" name="years" min="1" max="25" step="1" required>
+                </label>
+                <label class="plan-field">
+                    <span>初始資金（元）</span>
+                    <input type="number" name="initialCapital" min="0" step="10000" required>
+                </label>
+                <label class="plan-field">
+                    <span>股票比例（%）</span>
+                    <input type="number" name="stockRatio" min="0" max="100" step="5" required>
+                </label>
+            </div>
+        </section>
+
+        <!-- 2 現金流 -->
+        <section class="plan-pane" data-pane="1">
+            <p class="plan-pane-desc">金額正數為入帳（薪水、年終）、負數為扣款（房貸、保險費），現金不足時自動賣股補足。可只填一筆每月淨額；「第幾年」從模擬開始算起。</p>
+            <div id="cf-list" class="cf-list"></div>
+        </section>
+
+        <!-- 3 定期購買 -->
+        <section class="plan-pane" data-pane="2">
+            <p class="plan-pane-desc">決定現金什麼時候買進 00631L；皆以當天收盤價成交，買整數股、零頭留在現金。</p>
+            <div class="plan-options">
+                <label class="plan-option">
+                    <input type="radio" name="purchaseTiming" value="inflow">
+                    <span class="plan-option-title">入帳當天買進</span>
+                    <span class="plan-option-desc">每筆正現金流入帳當天買進，可選投入方式</span>
+                </label>
+                <label class="plan-option">
+                    <input type="radio" name="purchaseTiming" value="monthly">
+                    <span class="plan-option-title">每月固定日買進</span>
+                    <span class="plan-option-desc">每月指定日，買進全部現金或固定金額</span>
+                </label>
+                <label class="plan-option">
+                    <input type="radio" name="purchaseTiming" value="none">
+                    <span class="plan-option-title">不自動買進</span>
+                    <span class="plan-option-desc">現金留在帳戶，搭配再平衡使用</span>
+                </label>
+            </div>
+            <div class="plan-form plan-sub" id="purchase-inflow" hidden>
+                <label class="plan-field">
+                    <span>投入方式</span>
+                    <select name="purchaseInflowMode">
+                        <option value="ratio">依股票比例投入</option>
+                        <option value="amount">入帳金額買進</option>
+                        <option value="threshold">達門檻才買</option>
+                    </select>
+                </label>
+                <label class="plan-field" id="purchase-threshold-field">
+                    <span>門檻（%）</span>
+                    <input type="number" name="purchaseThreshold" min="1" max="200" step="5">
+                </label>
+            </div>
+            <p class="plan-range" id="purchase-inflow-desc" hidden></p>
+            <div class="plan-form plan-sub" id="purchase-monthly" hidden>
+                <label class="plan-field">
+                    <span>每月幾日</span>
+                    <input type="number" name="purchaseDay" min="1" max="31" step="1">
+                </label>
+                <label class="plan-field">
+                    <span>購買金額</span>
+                    <select name="purchaseMode">
+                        <option value="all">全部現金</option>
+                        <option value="fixed">固定金額</option>
+                    </select>
+                </label>
+                <label class="plan-field" id="purchase-amount-field">
+                    <span>固定金額（元，上限）</span>
+                    <input type="number" name="purchaseAmount" min="0" step="1000">
+                </label>
+            </div>
+        </section>
+
+        <!-- 4 再平衡 -->
+        <section class="plan-pane" data-pane="3">
+            <p class="plan-pane-desc">把股票與現金調回「基本設定」的股票比例；以當天收盤價成交。</p>
+            <div class="plan-options">
+                <label class="plan-option">
+                    <input type="radio" name="rebalanceMode" value="none">
+                    <span class="plan-option-title">不再平衡</span>
+                    <span class="plan-option-desc">只依定期購買規則買進</span>
+                </label>
+                <label class="plan-option">
+                    <input type="radio" name="rebalanceMode" value="periodic">
+                    <span class="plan-option-title">定期再平衡</span>
+                    <span class="plan-option-desc">每月 / 每季 / 每年指定日調回目標比例</span>
+                </label>
+                <label class="plan-option">
+                    <input type="radio" name="rebalanceMode" value="threshold">
+                    <span class="plan-option-title">漲跌幅再平衡</span>
+                    <span class="plan-option-desc">股票與現金偏離超過門檻時調回（50/50 同首頁規則）</span>
+                </label>
+            </div>
+            <div class="plan-form plan-sub" id="rebalance-periodic" hidden>
+                <label class="plan-field">
+                    <span>週期</span>
+                    <select name="rebalancePeriod">
+                        <option value="monthly">每月</option>
+                        <option value="quarterly">每季（1、4、7、10 月）</option>
+                        <option value="yearly">每年</option>
+                    </select>
+                </label>
+                <label class="plan-field" id="rebalance-month-field">
+                    <span>月</span>
+                    <input type="number" name="rebalanceMonth" min="1" max="12" step="1">
+                </label>
+                <label class="plan-field">
+                    <span>日</span>
+                    <input type="number" name="rebalanceDay" min="1" max="31" step="1">
+                </label>
+            </div>
+            <div class="plan-form plan-sub" id="rebalance-threshold" hidden>
+                <label class="plan-field">
+                    <span>門檻（%）</span>
+                    <input type="number" name="rebalanceThreshold" min="1" max="200" step="5">
+                </label>
+            </div>
+            <p class="plan-range" id="rebalance-range" hidden></p>
+            <p class="plan-hint" id="rebalance-hint" hidden></p>
+        </section>
+
+        <!-- 5 交易成本 -->
+        <section class="plan-pane" data-pane="4">
+            <p class="plan-pane-desc">手續費 = 成交金額 × 0.1425% × 折扣（無條件捨去，不低於最低手續費）；賣出另收 ETF 證交稅 0.1%。費率與稅率為法定值，折扣與最低手續費依您的券商填寫。</p>
+            <div class="plan-form" id="costs-fields">
+                <label class="plan-field">
+                    <span>手續費折扣（折）</span>
+                    <input type="number" name="costDiscount" min="0.1" max="10" step="0.1">
+                </label>
+                <label class="plan-field">
+                    <span>最低手續費（元）</span>
+                    <input type="number" name="costMinFee" min="0" step="1">
+                </label>
+            </div>
+            <label class="plan-check">
+                <input type="checkbox" name="costDisabled">
+                <span>不計交易成本（首頁策略概覽未計交易成本，勾選後可與首頁數字比對）</span>
+            </label>
+        </section>
+
+        <div class="plan-actions">
+            <button type="button" class="plan-next" id="plan-next">下一步 ›</button>
+            <button type="submit" class="btn-primary plan-submit">開始模擬 (RUN)</button>
+        </div>
+    </form>
+    <p id="plan-error" class="plan-error" hidden></p>
+    <p class="plan-note">資料僅在您的瀏覽器計算與保存（上次模擬的參數），不會上傳。</p>
+</div>
+
+<div id="plan-results" hidden>
+    <div id="plan-banner" class="plan-banner" hidden>
+        <span id="plan-banner-text"></span>
+        <button type="button" id="plan-reset" class="plan-banner-btn" hidden>恢復預設</button>
+    </div>
+    <!-- 分布 -->
+    <div class="panel-card">
+        <div class="panel-title">滾動起點分布 (ROLLING)</div>
+        <p id="rolling-desc" class="plan-desc"></p>
+        <div class="plan-stats">
+            <div class="data-box"><label>資金不斷鏈機率</label><span id="rs-success">---</span></div>
+            <div class="data-box"><label>期末資產 最差</label><span id="rs-worst">---</span></div>
+            <div class="data-box"><label>期末資產 中位</label><span id="rs-median">---</span></div>
+            <div class="data-box"><label>期末資產 最好</label><span id="rs-best">---</span></div>
+            <div class="data-box"><label>年化報酬 XIRR 中位</label><span id="rs-xirr">---</span></div>
+        </div>
+        <p id="rolling-compare" class="plan-compare"></p>
+        <div class="plan-toolbar">
+            <div class="plan-seg" id="rolling-sort">
+                <button type="button" data-sort="time" class="active">依時間</button>
+                <button type="button" data-sort="value">依結果</button>
+            </div>
+            <div class="plan-seg" id="rolling-pick">
+                <button type="button" data-pick="worst">最差</button>
+                <button type="button" data-pick="median">中位</button>
+                <button type="button" data-pick="best">最好</button>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="chartRolling"></canvas>
+        </div>
+        <p class="chart-note">點擊長條查看該起點明細 ※ 歷史回測不代表未來績效</p>
+    </div>
+
+    <!-- 明細 -->
+    <div class="panel-card" id="plan-detail">
+        <div class="panel-title">單一起點明細 (DETAIL)</div>
+        <p id="detail-desc" class="plan-desc"></p>
+        <div class="plan-stats">
+            <div class="data-box"><label>期末總資產</label><span id="dt-final">---</span></div>
+            <div class="data-box"><label>累計淨投入</label><span id="dt-invested">---</span></div>
+            <div class="data-box"><label>年化報酬 XIRR</label><span id="dt-xirr">---</span></div>
+            <div class="data-box"><label>最大回撤</label><span id="dt-mdd">---</span></div>
+            <div class="data-box"><label>累計交易成本</label><span id="dt-cost">---</span></div>
+            <div class="data-box" id="dt-broke-box" hidden><label>資金斷鏈日</label><span id="dt-broke">---</span></div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="chartPlanAsset"></canvas>
+        </div>
+    </div>
 </div>
