@@ -3,6 +3,8 @@
  * Chart.js 霓虹圖表初始化與更新
  */
 
+import Chart from 'chart.js/auto'; // npm 套件（版本見 package.json），auto 自動註冊全部圖表元件
+
 // ===== 策略回測圖表（首頁）=====
 
 let backtestChart = null;
