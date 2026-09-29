@@ -24,8 +24,10 @@ fetch() { # url → stdout（失敗重試 3 次）
 for y in $((NOW_Y - 1)) "$NOW_Y"; do
     fetch "https://www.twse.com.tw/rwd/zh/exRight/TWT49U?startDate=${y}0101&endDate=${y}1231&response=json" > "$TMP/ex.json"
     sleep 3
-    jq -r 'select(.stat == "OK") | .data[] | [.[1], .[0], .[4]] | join("|")' "$TMP/ex.json" |
-        awk -F'|' '{ split($2, a, /[年月日]/); printf "%s|%04d-%s-%s|%s\n", $1, a[1] + 1911, a[2], a[3], $3 }'
+    # 民國日期「115年07月21日」由 jq 轉換（awk 版本不一定支援多位元組字元切割）
+    jq -r 'select(.stat == "OK") | .data[] |
+        (.[0] | capture("(?<y>[0-9]+)年(?<m>[0-9]+)月(?<d>[0-9]+)日")) as $t |
+        [.[1], "\($t.y | tonumber + 1911)-\($t.m)-\($t.d)", .[4]] | join("|")' "$TMP/ex.json"
 done > "$TMP/exref.txt"
 
 for CODE in 0050 00631L; do
@@ -38,6 +40,10 @@ for CODE in 0050 00631L; do
     while [ "$ym" -le "$NOW_YM" ]; do
         fetch "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?date=${ym}01&stockNo=${CODE}&response=json" > "$TMP/m.json"
         sleep 3
+        # 非本月卻查無資料（限流、錯誤）即中止，避免該月被跳過後永久缺漏；本月可能尚無交易日
+        if [ "$(jq -r .stat "$TMP/m.json")" != "OK" ] && [ "$ym" != "$NOW_YM" ]; then
+            echo "${CODE} ${ym} 查詢失敗：$(jq -r .stat "$TMP/m.json")" >&2; exit 1
+        fi
         jq -r 'select(.stat == "OK") | .data[] | [.[0], .[6], .[7]] | join("|")' "$TMP/m.json" |
             awk -F'|' -v last="$LAST" '{
                 split($1, a, "/"); d = sprintf("%04d-%s-%s", a[1] + 1911, a[2], a[3])
@@ -59,7 +65,10 @@ for CODE in 0050 00631L; do
         FILENAME ~ /ex_code/ { ex[substr($0, 1, 10)] = substr($0, 12); next }
         FILENAME ~ /new\.txt/ {
             split($0, f, "|"); n++; D[n] = f[1]; C[n] = f[2]; diff = f[3]
-            if (diff ~ /X/) P[n] = f[2] / ex[f[1]] - 1
+            if (diff ~ /X/) {
+                if (!(f[1] in ex)) { print "除權息日 " f[1] " 查無參考價" > "/dev/stderr"; exit 1 }
+                P[n] = f[2] / ex[f[1]] - 1
+            }
             else { gsub(/[+ ]/, "", diff); P[n] = diff / (f[2] - diff) }
             next
         }
