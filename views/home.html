@@ -81,10 +81,11 @@
 <!-- 持有期間勝率（winRatePanel.js，整塊可移除） -->
 <div class="panel-card winrate-card">
     <div class="panel-title">持有越久，勝率越高 (HOLDING_WIN_RATE)</div>
-    <p class="winrate-sub"><span id="winratePeriod"></span><br>任一交易日進場、持有 N 年後的賺錢機率；最差 / 最好為年化報酬 · 區間不足 N 年顯示「—」</p>
+    <p class="winrate-sub"><span id="winratePeriod"></span><br>任一交易日進場、持有 N 年後的賺錢機率 · 區間不足 N 年顯示「—」</p>
     <div class="winrate-wrap">
         <table class="winrate-table" id="winrateTable"></table>
     </div>
+    <p class="winrate-note">※ 皆為年化報酬。虧損中位：只看賠錢的情況，一半賠得比此值少、一半賠得比此值多（無虧損顯示「—」）；中位：全部情況中，一半優於此值。</p>
 </div>
 
 <!-- 浮動日期區間選單 -->
@@ -126,6 +127,21 @@
         <span class="float-trigger-icon" aria-hidden="true"></span>
         <span class="float-trigger-label">2000～2026</span>
     </button>
+</div>
+
+<!-- 持有期間報酬分布 Modal（點勝率表格子開啟） -->
+<div id="modal-dist" class="modal-overlay" style="display:none">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title" id="distTitle"></div>
+            <button class="modal-close" id="modal-dist-close" aria-label="關閉"><span class="modal-close-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="dist-stats" id="distStats"></div>
+        <div class="modal-chart-wrapper dist-chart-wrapper">
+            <canvas id="chartDist"></canvas>
+        </div>
+        <p class="winrate-note">※ 橫軸為持有期間年化報酬區間，縱軸為落在該區間的進場日比例。</p>
+    </div>
 </div>
 
 <!-- 50/50 詳細圖表 Modal -->

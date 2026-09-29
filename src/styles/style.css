@@ -804,7 +804,22 @@ body:has(.float-menu) footer { padding-bottom: 5.5rem; }
 .winrate-range { margin-top: 4px; font-family: var(--font-num); font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
 .winrate-range .positive { color: var(--color-up); }
 .winrate-range .negative { color: var(--color-down); }
+.winrate-sep { margin: 0 8px; color: var(--text-faint); }
 .winrate-na { color: var(--text-faint); }
+.winrate-note { margin-top: 12px; font-size: 0.75rem; color: var(--text-muted); line-height: 1.7; }
+.winrate-cell { cursor: pointer; transition: box-shadow 0.2s; }
+.winrate-cell:hover { box-shadow: inset 0 0 0 1px rgba(0, 210, 255, 0.6); }
+
+/* 報酬分布 Modal */
+.dist-stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 16px; }
+.dist-stat { display: flex; flex-direction: column; gap: 2px; }
+.dist-stat-label { font-size: 0.72rem; color: var(--text-muted); }
+.dist-stat-value { font-family: var(--font-num); font-size: 1.05rem; color: var(--text-primary); }
+.dist-stat-value.positive { color: var(--color-up); }
+.dist-stat-value.negative { color: var(--color-down); }
+.dist-stat-unit { margin-left: 4px; font-family: 'Noto Sans TC', sans-serif; font-size: 0.72rem; color: var(--text-muted); }
+.dist-stat-amount { font-family: var(--font-num); font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
+.dist-chart-wrapper { height: 380px; }
 
 /* ===== 關於我（views/about.html） ===== */
 .about-body { flex: 1; min-width: 280px; font-size: 0.9rem; line-height: 1.8; color: var(--text-secondary); }

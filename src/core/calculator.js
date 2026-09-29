@@ -54,20 +54,33 @@ export function findMDDPeriod(series) {
 }
 
 // 持有期間勝率：任一交易日進場、持有 years 年後的結果
-// series：[{ date, amount }]；回傳 { winRate, worst, best, samples }（年化 %），樣本不足回傳 null
+// series：[{ date, amount }]；回傳 { winRate, worst, best, median, lossMedian, cagrs, samples }（年化 %，cagrs 由小到大；lossMedian 為虧損樣本中位數，無虧損為 null），樣本不足回傳 null
 export function calcHoldingWinRate(series, years) {
-    let wins = 0, samples = 0, worst = Infinity, best = -Infinity;
+    let wins = 0;
+    const cagrs = [];
     let j = 0;
     for (let i = 0; i < series.length; i++) {
         const target = (+series[i].date.slice(0, 4) + years) + series[i].date.slice(4);
         while (j < series.length && series[j].date < target) j++;
         if (j >= series.length) break; // 之後的進場日都不滿 years 年
         const ret = series[j].amount / series[i].amount;
-        const cagr = (Math.pow(ret, 1 / years) - 1) * 100;
         if (ret > 1) wins++;
-        if (cagr < worst) worst = cagr;
-        if (cagr > best) best = cagr;
-        samples++;
+        cagrs.push((Math.pow(ret, 1 / years) - 1) * 100);
     }
-    return samples ? { winRate: wins / samples * 100, worst, best, samples } : null;
+    const samples = cagrs.length;
+    if (!samples) return null;
+    cagrs.sort((a, b) => a - b);
+    return {
+        winRate: wins / samples * 100,
+        worst: cagrs[0], best: cagrs[samples - 1],
+        median: quantile(cagrs, 0.5),
+        lossMedian: wins < samples ? quantile(cagrs.slice(0, samples - wins), 0.5) : null, // 未獲利者即排序後前段
+        cagrs, samples
+    };
+}
+
+// 已排序陣列的分位數（線性內插）
+function quantile(sorted, q) {
+    const pos = (sorted.length - 1) * q, lo = Math.floor(pos);
+    return sorted[lo] + (sorted[Math.min(lo + 1, sorted.length - 1)] - sorted[lo]) * (pos - lo);
 }

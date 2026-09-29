@@ -103,6 +103,64 @@ function periodLast(series) {
 }
 
 // 50/50 策略股票與現金明細
+// ===== 持有期間報酬分布（勝率表點擊）=====
+let distChart = null;
+
+// 約 20 組的整齊組距（1 / 2 / 2.5 / 5 × 10^k）
+function niceStep(raw) {
+    const p = Math.pow(10, Math.floor(Math.log10(raw)));
+    return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => s >= raw);
+}
+
+// cagrs：由小到大的年化報酬 %；組界為組距整數倍，0 必為組界（虧損 / 獲利分色：台股綠跌紅漲）
+export function renderDistChart(cagrs) {
+    const canvas = document.getElementById('chartDist');
+    if (!canvas) return;
+    if (distChart) distChart.destroy();
+
+    const lo = cagrs[0], hi = cagrs[cagrs.length - 1];
+    const step = niceStep(Math.max(hi - lo, 0.1) / 20);
+    const start = Math.floor(lo / step) * step;
+    const nBins = Math.max(Math.floor((hi - start) / step) + 1, 1);
+    const counts = new Array(nBins).fill(0);
+    cagrs.forEach(v => counts[Math.min(Math.floor((v - start) / step), nBins - 1)]++);
+
+    const edge = i => +(start + i * step).toFixed(2);
+    const labels = counts.map((_, i) => `${edge(i)}~${edge(i + 1)}%`);
+    const share = counts.map(c => c / cagrs.length * 100);
+    const isLoss = i => edge(i + 1) <= 0;
+
+    distChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                data: share,
+                backgroundColor: counts.map((_, i) => isLoss(i) ? 'rgba(52, 211, 153, 0.45)' : 'rgba(248, 113, 113, 0.45)'),
+                borderColor:     counts.map((_, i) => isLoss(i) ? '#34D399' : '#F87171'),
+                borderWidth: 1,
+                barPercentage: 1, categoryPercentage: 0.92
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    ...glassTooltip,
+                    usePointStyle: false,
+                    callbacks: {
+                        title: items => '年化 ' + items[0].label,
+                        label: item => `${item.raw.toFixed(1)}%（${counts[item.dataIndex].toLocaleString('en-US')} 個進場日）`
+                    }
+                }
+            },
+            scales: neonScales(v => v + '%')
+        }
+    });
+}
+
 export function render5050DetailChart(series) {
     const canvas = document.getElementById('chart5050Detail');
     if (!canvas) return;

@@ -1,14 +1,14 @@
 /**
- * uiController.js
+ * home.js
  * 首頁策略回測：日期區間選單、績效卡片、50/50 Modal 的 DOM 控制
  * 由 router.js 在載入 views/home.html 後呼叫 initBacktest()
  */
 
-import { fetchBacktestData } from './database.js';
-import { calcBuyHold, calc5050, findMDDPeriod } from './calculator.js';
-import { renderBacktestChart, render5050DetailChart } from './chartRender.js';
+import { fetchBacktestData } from '../../core/database.js';
+import { calcBuyHold, calc5050, findMDDPeriod } from '../../core/calculator.js';
+import { renderBacktestChart, render5050DetailChart } from '../../charts/chartRender.js';
 import { renderWinRate } from './winRatePanel.js';
-import { initFloatAutoHide } from './floatAutoHide.js';
+import { initFloatAutoHide } from '../../ui/floatAutoHide.js';
 
 let currentStartDate = null;
 let currentEndDate   = null;

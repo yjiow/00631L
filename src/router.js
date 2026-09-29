@@ -3,9 +3,9 @@
  * SPA 路由管理：非同步載入 views/*.html 並執行過場與初始化邏輯
  */
 
-import { initBacktest } from './uiController.js';
-import { updateNavIndicator } from './navIndicator.js';
-import { initDataStatus } from './dataStatus.js';
+import { initBacktest } from './pages/home/home.js';
+import { updateNavIndicator } from './ui/navIndicator.js';
+import { initDataStatus } from './pages/about/dataStatus.js';
 
 const viewStage = document.getElementById('view-stage');
 

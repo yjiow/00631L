@@ -4,7 +4,7 @@
  */
 
 import { initRouter } from './router.js';
-import { initNavCollapse } from './navCollapse.js';
+import { initNavCollapse } from './ui/navCollapse.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 導覽列放不下時收合為漢堡選單（需早於 router，resize 時先切換狀態再定位底線）
