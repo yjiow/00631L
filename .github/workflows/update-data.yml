@@ -19,6 +19,16 @@ jobs:
       - name: 補抓股價
         run: bash scripts/update-data.sh public/data
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: 資料檢查（失敗則不 commit）
+        run: |
+          npm ci
+          npx vitest run tests/data.test.js
+
       - name: 有變更才 commit + push
         run: |
           if git diff --quiet public/data/; then echo "無新資料"; exit 0; fi
