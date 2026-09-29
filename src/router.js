@@ -5,6 +5,7 @@
 
 import { initBacktest } from './uiController.js';
 import { updateNavIndicator } from './navIndicator.js';
+import { initDataStatus } from './dataStatus.js';
 
 const viewStage = document.getElementById('view-stage');
 
@@ -59,6 +60,8 @@ export async function navigateTo(viewName) {
             if (viewName === 'home') {
                 runTypewriter('模擬過去，掌控您的財務未來。', document.getElementById('typewriter-text'));
                 initBacktest();
+            } else if (viewName === 'about') {
+                initDataStatus();
             }
         }, 150);
 

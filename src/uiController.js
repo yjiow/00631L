@@ -198,10 +198,11 @@ export function initBacktest() {
         loadRange(Math.min(s, e), e);
     });
 
-    // 快捷鍵：選後關閉面板，保留目前結束日期
+    // 快捷鍵：選後關閉面板，保留目前結束日期（「全部」data-full 同時重設結束日期）
     document.querySelectorAll('.year-quick-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             togglePanel(false);
+            if ('full' in btn.dataset) { loadRange(2000, curYear); return; }
             const startDate = btn.dataset.startDate || null;
             const startYear = +btn.dataset.start;
             const endDate = currentEndDate || (curYear + '-12-31');

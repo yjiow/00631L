@@ -27,6 +27,15 @@ async function loadAll() {
     return cache;
 }
 
+// 資料最後交易日 'YYYY-MM-DD'（兩檔皆有值的最後一天）
+export async function getLatestDate() {
+    const rows = await loadAll();
+    for (let i = rows.length - 1; i >= 0; i--) {
+        if (rows[i].t2_close != null && rows[i].tw50_close != null) return rows[i].date;
+    }
+    return null;
+}
+
 // 取得區間資料，日期格式 'YYYY-MM-DD'
 // dataInterval：'daily' 每日；'monthly_last_day' 每月最後一個交易日
 export async function fetchBacktestData(startDate, endDate, dataInterval = 'daily') {
