@@ -13,15 +13,16 @@ export function formatMoney(v) {
 // '1,234,567' → 1234567（空字串為 0，同 Number('')）
 export const parseMoney = s => Number(String(s).replace(/,/g, ''));
 
-// 只留數字（signed 時保留開頭負號）後加逗號，游標維持在同一個數字之後
+// 只留數字（signed 時保留開頭負號、小數點後捨去）後加逗號，游標維持在同一個數字之後
 function reformat(el) {
     const signed = el.dataset.money === 'signed';
     const raw = el.value;
-    const caret = el.selectionStart ?? raw.length;
+    const intRaw = raw.split('.')[0]; // 金額以元為單位：小數部分捨去，避免 1234.5 被當成 12345
+    const caret = Math.min(el.selectionStart ?? raw.length, intRaw.length);
     const keep = ch => /\d/.test(ch);
     const digitsBefore = [...raw.slice(0, caret)].filter(keep).length;
     const neg = signed && raw.trimStart().startsWith('-');
-    const digits = [...raw].filter(keep).join('').replace(/^0+(?=\d)/, '');
+    const digits = [...intRaw].filter(keep).join('').replace(/^0+(?=\d)/, '');
     const text = (neg ? '-' : '') + (digits ? Number(digits).toLocaleString('en-US') : '');
     if (text === raw) return;
     el.value = text;
