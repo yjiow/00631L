@@ -42,6 +42,7 @@ export async function navigateTo(viewName) {
         setTimeout(() => {
             // 2. 注入新視圖
             viewStage.innerHTML = html;
+            window.scrollTo(0, 0); // 換頁回到頂端
 
             // 3. 更新選單 Active 狀態
             document.querySelectorAll('[data-view]').forEach(item => {

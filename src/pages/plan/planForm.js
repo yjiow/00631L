@@ -5,6 +5,7 @@
 
 import { normalizePlan } from '../../core/plan/defaults.js';
 import { setCashflows, readCashflows } from './cashflowList.js';
+import { formatMoney, parseMoney } from '../../ui/moneyInput.js';
 import { canRebalance, triggerRange } from '../../core/plan/rebalance.js';
 
 const $ = id => document.getElementById(id);
@@ -68,7 +69,7 @@ export function syncCosts(form) {
 export function fillForm(form, plan) {
     const p = normalizePlan(plan);
     form.years.value = p.years;
-    form.initialCapital.value = p.initialCapital;
+    form.initialCapital.value = formatMoney(p.initialCapital);
     form.stockRatio.value = Math.round(p.stockRatio * 100);
     setCashflows(p.cashflows);
     form.purchaseTiming.value = p.purchase.timing;
@@ -76,7 +77,7 @@ export function fillForm(form, plan) {
     form.purchaseThreshold.value = Math.round(p.purchase.threshold * 100);
     form.purchaseDay.value = p.purchase.day;
     form.purchaseMode.value = p.purchase.mode;
-    form.purchaseAmount.value = p.purchase.amount || '';
+    form.purchaseAmount.value = p.purchase.amount ? formatMoney(p.purchase.amount) : '';
     syncPurchase(form);
     form.rebalanceMode.value = p.rebalance.mode;
     form.rebalancePeriod.value = p.rebalance.period;
@@ -92,7 +93,7 @@ export function fillForm(form, plan) {
 
 // 表單欄位 → { plan } 或 { error, field }（field 為出錯欄位 name，供頁籤標紅）
 export function readForm(form) {
-    const num = name => Number(form[name].value);
+    const num = name => parseMoney(form[name].value); // 金額欄位含千分位逗號
     const years = num('years'), initialCapital = num('initialCapital'), ratio = num('stockRatio');
 
     if (!Number.isInteger(years) || years < 1 || years > 25) return { error: '模擬年數請填 1～25 的整數', field: 'years' };

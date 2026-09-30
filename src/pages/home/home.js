@@ -9,6 +9,7 @@ import { calcBuyHold, calc5050, findMDDPeriod } from '../../core/calculator.js';
 import { renderBacktestChart, render5050DetailChart } from '../../charts/chartRender.js';
 import { renderWinRate } from './winRatePanel.js';
 import { initFloatAutoHide } from '../../ui/floatAutoHide.js';
+import { AI_CUTOFF } from '../../core/marketDates.js';
 
 let currentStartDate = null;
 let currentEndDate   = null;
@@ -68,6 +69,22 @@ function renderDashboard(s00631, s5050, s0050) {
     renderWinRate(s00631, s5050, s0050);
 }
 
+// 區間跨過 AI 行情起點（起始 ≤ 2022/12/31 < 最後交易日）時，附同起始日至 2022/12/31 的累積報酬對照
+function renderAiCompare(rows) {
+    const el = $('ai-compare');
+    const before = rows.filter(r => r.date <= AI_CUTOFF);
+    const crosses = before.length && before.length < rows.length;
+    el.hidden = !crosses;
+    if (!crosses) return;
+    // 數值上漲跌色（內容皆為計算數字與固定文字）
+    const roi = s => {
+        const v = Math.round(s.at(-1).amount - 100);
+        return `<span class="compare-val ${v >= 0 ? 'positive' : 'negative'}">${v >= 0 ? '+' : ''}${v.toLocaleString()}%</span>`;
+    };
+    el.innerHTML = `對照 AI 行情前（${currentStartDate.replace(/-/g, '/')}～${AI_CUTOFF.replace(/-/g, '/')}）累積報酬：` +
+        `00631L ${roi(calcBuyHold(before, 't2_close'))}、50/50 策略 ${roi(calc5050(before, 't2_close'))}、0050 ${roi(calcBuyHold(before, 'tw50_close'))}`;
+}
+
 async function loadRange(startYear, endYear, startDate, endDate) {
     if (endYear < startYear) endYear = startYear;
     currentStartDate = startDate || (startYear + '-01-01');
@@ -81,12 +98,14 @@ async function loadRange(startYear, endYear, startDate, endDate) {
     $('startDateLabel').textContent = mmdd(currentStartDate);
     $('endDateLabel').textContent   = mmdd(currentEndDate);
 
-    // 快捷鍵 active 狀態
+    // 快捷鍵 active 狀態：起始組比對起始日，結束組比對結束日（「最新」= 今年 12/31）
     const customStart = currentStartDate === startYear + '-01-01' ? '' : currentStartDate;
-    document.querySelectorAll('.year-quick-btn').forEach(btn => {
-        btn.classList.toggle('active',
-            +btn.dataset.start === startYear && +btn.dataset.end === endYear &&
-            (btn.dataset.startDate || '') === customStart);
+    document.querySelectorAll('.year-quick-btn:not(.year-end-btn)').forEach(btn => {
+        btn.classList.toggle('active', +btn.dataset.start === startYear && (btn.dataset.startDate || '') === customStart);
+    });
+    const latestEnd = new Date().getFullYear() + '-12-31';
+    document.querySelectorAll('.year-end-btn').forEach(btn => {
+        btn.classList.toggle('active', (btn.dataset.endDate === 'latest' ? latestEnd : btn.dataset.endDate) === currentEndDate);
     });
     document.querySelector('.float-trigger-label').textContent = startYear + '～' + endYear;
 
@@ -98,6 +117,7 @@ async function loadRange(startYear, endYear, startDate, endDate) {
     const s0050  = calcBuyHold(rows, 'tw50_close');
     if (!s00631.length || !s0050.length) return;
     renderDashboard(s00631, calc5050(rows, 't2_close'), s0050);
+    renderAiCompare(rows);
 }
 
 // MM/DD 點擊編輯
@@ -198,8 +218,8 @@ export function initBacktest() {
         loadRange(Math.min(s, e), e);
     });
 
-    // 快捷鍵：選後關閉面板，保留目前結束日期（「全部」data-full 同時重設結束日期）
-    document.querySelectorAll('.year-quick-btn').forEach(btn => {
+    // 起始快捷鍵：選後關閉面板，保留目前結束日期（「全部」data-full 同時重設結束日期）
+    document.querySelectorAll('.year-quick-btn:not(.year-end-btn)').forEach(btn => {
         btn.addEventListener('click', () => {
             togglePanel(false);
             if ('full' in btn.dataset) { loadRange(2000, curYear); return; }
@@ -212,6 +232,16 @@ export function initBacktest() {
             } else {
                 loadRange(startYear, endYear, startDate, endDate);
             }
+        });
+    });
+
+    // 結束快捷鍵：只改結束日期、保留起始日期（起始晚於結束時起始改回 2000）
+    document.querySelectorAll('.year-end-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            togglePanel(false);
+            const endDate = btn.dataset.endDate === 'latest' ? curYear + '-12-31' : btn.dataset.endDate;
+            const startDate = currentStartDate && currentStartDate <= endDate ? currentStartDate : '2000-01-01';
+            loadRange(+startDate.slice(0, 4), +endDate.slice(0, 4), startDate, endDate);
         });
     });
 

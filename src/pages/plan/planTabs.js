@@ -11,7 +11,19 @@ const confirmed = new Set(); // 按過「下一步」的頁籤索引（切換視
 
 const $ = id => document.getElementById(id);
 
-export function showTab(i) {
+// 切換頁籤後把頁籤列帶回畫面：寬螢幕左欄自身捲動時捲左欄，否則捲整頁（只在頁籤列已捲出畫面時）
+function revealTabs() {
+    const box = form.closest('.plan-params');
+    if (box && getComputedStyle(box).overflowY === 'auto' && box.scrollHeight > box.clientHeight) {
+        box.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+    const navH = document.querySelector('nav')?.offsetHeight ?? 0;
+    const top = box.getBoundingClientRect().top;
+    if (top < navH) window.scrollTo({ top: top + window.scrollY - navH - 12, behavior: 'smooth' });
+}
+
+export function showTab(i, reveal = false) {
     current = Math.max(0, Math.min(i, panes.length - 1));
     tabs.forEach((t, k) => {
         t.classList.toggle('active', k === current);
@@ -21,6 +33,7 @@ export function showTab(i) {
     const name = tabs[current].childNodes[1].textContent.trim(); // 編號與狀態 span 之間的文字
     $('plan-step-label').textContent = `步驟 ${current + 1}/${panes.length}　${name}`;
     $('plan-next').hidden = current === panes.length - 1;
+    if (reveal) revealTabs();
 }
 
 // 頁內所有欄位的 name=value（列重建後值相同仍視為相同）
@@ -58,7 +71,7 @@ export function clearErrors() {
 function next() {
     confirmed.add(current);
     updateStatus();
-    showTab(current + 1);
+    showTab(current + 1, true);
 }
 
 // 呼叫前表單須已填入預設值（作為「預設」狀態的比較基準）
@@ -68,10 +81,10 @@ export function initTabs(formEl) {
     panes = [...form.querySelectorAll('.plan-pane')];
     defaults = panes.map(paneState);
 
-    tabs.forEach((t, k) => t.addEventListener('click', () => showTab(k)));
+    tabs.forEach((t, k) => t.addEventListener('click', () => showTab(k, true)));
     form.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
         const step = Number(b.dataset.step);
-        step > 0 ? next() : showTab(current + step);
+        step > 0 ? next() : showTab(current + step, true);
     }));
     $('plan-next').addEventListener('click', next);
     form.addEventListener('input', e => { e.target.classList.remove('error'); updateStatus(); });

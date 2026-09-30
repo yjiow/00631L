@@ -7,11 +7,13 @@ import { normalizePlan } from '../src/core/plan/defaults.js';
 import { xirr } from '../src/core/plan/xirr.js';
 import { drifted, triggerRange } from '../src/core/plan/rebalance.js';
 import { simulatePlan, simulateRolling, toSeries } from '../src/core/plan/simulate.js';
+import { yearlySummary } from '../src/core/plan/summary.js';
+import { formatMoney, parseMoney } from '../src/ui/moneyInput.js';
 
-// 2000/01/03 ~ 2001/12/31 的平日為交易日；price(date) 決定股價（預設 10）
-function weekdays(price = () => 10) {
+// 2000/01/03 ~ endYear/12/31 的平日為交易日；price(date) 決定股價（預設 10）
+function weekdays(price = () => 10, endYear = 2001) {
     const dates = [], prices = [];
-    for (let t = Date.UTC(2000, 0, 1); t <= Date.UTC(2001, 11, 31); t += 864e5) {
+    for (let t = Date.UTC(2000, 0, 1); t <= Date.UTC(endYear, 11, 31); t += 864e5) {
         const d = new Date(t);
         if (d.getUTCDay() === 0 || d.getUTCDay() === 6) continue;
         const date = d.toISOString().slice(0, 10);
@@ -22,7 +24,7 @@ function weekdays(price = () => 10) {
 }
 
 const NO_COST = { enabled: false };
-const plan = over => ({ years: 1, stockRatio: 1, cashflows: [], purchase: { timing: 'none' }, costs: NO_COST, ...over });
+const plan = over => ({ years: 1, stockRatio: 1, cashflows: [], purchase: { timing: 'none' }, rebalance: { mode: 'none' }, costs: NO_COST, ...over });
 
 describe('calendar', () => {
     it('當月無該日取月底', () => {
@@ -69,7 +71,9 @@ describe('normalizePlan', () => {
     it('缺欄位補預設值', () => {
         const p = normalizePlan({ years: 10, purchase: { day: 20 }, cashflows: [{ amount: 5, day: 1 }] });
         expect(p.years).toBe(10);
-        expect(p.purchase).toMatchObject({ timing: 'inflow', inflowMode: 'ratio', day: 20, mode: 'all' });
+        expect(p.purchase).toMatchObject({ timing: 'none', inflowMode: 'threshold', day: 20, mode: 'all' });
+        expect(p.rebalance.mode).toBe('threshold');
+        expect(p.stockRatio).toBe(0.5);
         expect(p.cashflows[0]).toMatchObject({ fromYear: 1, toYear: null });
         expect(p.costs.enabled).toBe(true);
     });
@@ -164,6 +168,13 @@ describe('simulatePlan', () => {
         expect(r.daily.at(-1).date).toBe('2000-04-05');
     });
 
+    it('最大回撤附高點 / 低點日期', () => {
+        const price = d => d >= '2000-06-01' ? 12 : d >= '2000-03-01' ? 5 : d >= '2000-02-01' ? 20 : 10;
+        const r = simulatePlan(weekdays(price), 0, plan({ initialCapital: 1000 }));
+        expect(r.mdd).toBeCloseTo(-75);
+        expect(r.mddPeriod).toEqual({ peak: '2000-02-01', trough: '2000-03-01', peakValue: 2000, troughValue: 500 });
+    });
+
     it('資料不足 years 年回傳 null', () => {
         expect(simulatePlan(weekdays(), 0, plan({ years: 3 }))).toBeNull();
     });
@@ -200,6 +211,29 @@ describe('rebalance', () => {
     });
 });
 
+describe('yearlySummary', () => {
+    it('依第幾年彙總入帳 / 扣款 / 買賣 / 年底資產', () => {
+        const p = plan({
+            years: 2, initialCapital: 1000,
+            cashflows: [{ amount: 100, day: 5 }, { amount: -50, period: 'yearly', month: 6, day: 1 }],
+            purchase: { timing: 'inflow', inflowMode: 'amount' }
+        });
+        const r = simulatePlan(weekdays(() => 10, 2002), 0, p);
+        const ys = yearlySummary(r, 2);
+        expect(ys.map(y => [y.year, y.fromDate, y.inflow, y.outflow, y.buy])).toEqual([
+            [1, '2000-01-03', 1200, 50, 2200], // 含初始買進 1000
+            [2, '2001-01-03', 1200, 50, 1200]
+        ]);
+        expect(ys[1].endDate).toBe('2002-01-03'); // 期末那天併入最後一年
+        expect(ys.at(-1).endValue).toBeCloseTo(r.final);
+    });
+
+    it('資金斷鏈後的年度不列', () => {
+        const r = simulatePlan(weekdays(() => 10, 2002), 0, plan({ years: 2, initialCapital: 100, cashflows: [{ amount: -30, day: 5 }] }));
+        expect(yearlySummary(r, 2)).toHaveLength(1);
+    });
+});
+
 describe('simulateRolling', () => {
     it('每月第一個交易日為起點，至不滿 years 年為止', () => {
         const rs = simulateRolling(weekdays(), plan({ initialCapital: 100 }));
@@ -213,5 +247,16 @@ describe('toSeries', () => {
     it('略過 null', () => {
         const s = toSeries([{ date: 'a', x: 1 }, { date: 'b', x: null }, { date: 'c', x: 2 }], 'x');
         expect(s).toEqual({ dates: ['a', 'c'], prices: [1, 2] });
+    });
+});
+
+describe('moneyInput', () => {
+    it('千分位格式化與解析', () => {
+        expect(formatMoney(1234567)).toBe('1,234,567');
+        expect(formatMoney(-32000)).toBe('-32,000');
+        expect(formatMoney('')).toBe('');
+        expect(parseMoney('-1,234')).toBe(-1234);
+        expect(parseMoney('')).toBe(0);
+        expect(parseMoney('-')).toBeNaN();
     });
 });

@@ -69,6 +69,7 @@ export function simulatePlan(series, startIdx, plan, { detail = true } = {}) {
 
     const acts = buildSchedule(dates, startIdx, endIdx, p);
     let peak = 0, mdd = 0, value = 0, brokeDate = null, a = 0;
+    let peakDate = null, mddPeriod = null; // 最大回撤的高點 / 低點日期與資產
     const { rebalance, stockRatio } = p;
     const checkDrift = rebalance.mode === 'threshold';
 
@@ -83,15 +84,16 @@ export function simulatePlan(series, startIdx, plan, { detail = true } = {}) {
             rebalanceTo(s.account, prices[i], stockRatio);
         }
         value = brokeDate ? 0 : s.account.value(prices[i]);
-        if (value > peak) peak = value;
-        if (peak > 0) mdd = Math.min(mdd, (value - peak) / peak * 100);
+        if (value > peak) { peak = value; peakDate = dates[i]; }
+        const dd = peak > 0 ? (value - peak) / peak * 100 : 0;
+        if (dd < mdd) { mdd = dd; mddPeriod = { peak: peakDate, trough: dates[i], peakValue: peak, troughValue: value }; }
         if (detail) daily.push({ date: dates[i], cash: brokeDate ? 0 : s.account.cash, shares: brokeDate ? 0 : s.account.shares, value, invested: s.invested });
     }
 
     const endDate = brokeDate ?? dates[endIdx];
     return {
         startDate: dates[startIdx], endDate,
-        final: value, invested: s.invested, costTotal: s.account.costTotal, mdd, brokeDate,
+        final: value, invested: s.invested, costTotal: s.account.costTotal, mdd, mddPeriod, brokeDate,
         xirr: xirr([...s.cashflows, { date: endDate, amount: value }]),
         ...(detail && { daily, trades })
     };

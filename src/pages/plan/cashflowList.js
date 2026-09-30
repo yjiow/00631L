@@ -4,12 +4,14 @@
  * 以 DOM 為唯一狀態；欄位 name 為 cf{列}_{欄}（供錯誤標紅定位），每次增刪後重新編號
  */
 
+import { formatMoney, parseMoney } from '../../ui/moneyInput.js';
+
 const PERIODS = { monthly: '每月', yearly: '每年', once: '單次' };
 const MAX_ROWS = 10;
 
 const ROW_HTML = `
     <label class="plan-field cf-name"><span>名稱</span><input type="text" data-f="name" maxlength="20" placeholder="例：薪水"></label>
-    <label class="plan-field"><span data-short="金額">金額（元）</span><input type="number" data-f="amount" step="1000"></label>
+    <label class="plan-field"><span data-short="金額">金額（元）</span><input type="text" data-f="amount" data-money="signed" autocomplete="off"></label>
     <label class="plan-field"><span>週期</span><select data-f="period">${Object.entries(PERIODS).map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>
     <label class="plan-field cf-month"><span>月</span><input type="number" data-f="month" min="1" max="12"></label>
     <label class="plan-field"><span>日</span><input type="number" data-f="day" min="1" max="31"></label>
@@ -49,10 +51,21 @@ function addRow(f) {
     row.className = 'cf-row';
     row.innerHTML = ROW_HTML; // 固定模板，使用者資料一律以 value 寫入
     const set = (k, v) => { row.querySelector(`[data-f=${k}]`).value = v ?? ''; };
-    set('name', f.name); set('amount', f.amount); set('period', f.period);
+    set('name', f.name); set('amount', formatMoney(f.amount)); set('period', f.period);
     set('month', f.month); set('day', f.day); set('fromYear', f.fromYear); set('toYear', f.toYear);
     syncRow(row);
     list.querySelector('.cf-add').before(row);
+    return row;
+}
+
+// 新列捲到中間（避開寬螢幕左欄底部固定的按鈕區）：左欄可自身捲動時只捲左欄，否則捲整頁
+function revealRow(row) {
+    const box = row.closest('.plan-params');
+    if (box && getComputedStyle(box).overflowY === 'auto' && box.scrollHeight > box.clientHeight) {
+        box.scrollTo({ top: row.offsetTop - (box.clientHeight - row.offsetHeight) / 2, behavior: 'smooth' });
+    } else {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 }
 
 // container 內建立清單並綁定事件（視圖重新載入時元素重建）
@@ -61,7 +74,9 @@ export function initCashflowList(container) {
     list.innerHTML = '<button type="button" class="cf-add">＋ 新增現金流</button>';
     list.addEventListener('click', e => {
         if (e.target.closest('.cf-add')) {
-            addRow({ name: '', amount: '', period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null });
+            const row = addRow({ name: '', amount: '', period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null });
+            revealRow(row);
+            row.querySelector('[data-f=name]').focus({ preventScroll: true });
         } else if (e.target.closest('.cf-del')) {
             e.target.closest('.cf-row').remove();
         } else return;
@@ -80,14 +95,22 @@ export function setCashflows(flows) {
 }
 
 // → { flows } 或 { error, field }
+// 按「開始模擬」時：名稱與金額皆空的列自動刪除；有名稱沒金額需補金額；只有金額沒名稱可
 export function readCashflows() {
+    const blank = rowsEl().filter(r => ['name', 'amount'].every(k => r.querySelector(`[data-f=${k}]`).value.trim() === ''));
+    if (blank.length) {
+        blank.forEach(r => r.remove());
+        renumber();
+        notify();
+    }
     const flows = [];
     for (const [i, row] of rowsEl().entries()) {
         const v = k => row.querySelector(`[data-f=${k}]`).value.trim();
-        const n = k => Number(v(k));
+        const n = k => parseMoney(v(k));
         const err = (k, msg) => ({ error: `現金流第 ${i + 1} 列：${msg}`, field: `cf${i}_${k}` });
         const period = v('period');
-        if (v('amount') === '' || !Number.isFinite(n('amount'))) return err('amount', '金額請填數字');
+        if (v('amount') === '') return err('amount', '請填金額');
+        if (!Number.isFinite(n('amount'))) return err('amount', '金額請填數字');
         if (period !== 'monthly' && !(Number.isInteger(n('month')) && n('month') >= 1 && n('month') <= 12)) return err('month', '月請填 1～12');
         if (!(Number.isInteger(n('day')) && n('day') >= 1 && n('day') <= 31)) return err('day', '日請填 1～31');
         if (!(Number.isInteger(n('fromYear')) && n('fromYear') >= 1)) return err('fromYear', '第幾年請填 1 以上的整數');

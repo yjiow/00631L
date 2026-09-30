@@ -4,7 +4,7 @@
  */
 
 import Chart from 'chart.js/auto'; // npm 套件（版本見 package.json），auto 自動註冊全部圖表元件
-import { neonScales, glassTooltip, neonLine, downsampleIdx } from './chartTheme.js';
+import { neonScales, glassTooltip, neonLine, downsampleIdx, periodLast } from './chartTheme.js';
 
 // ===== 策略回測圖表（首頁）=====
 
@@ -45,14 +45,6 @@ export function renderBacktestChart(labels, vals00631, vals5050, vals0050) {
     });
 }
 
-// 依交易日數切換粒度：≤120 每日、≤520 每週、其餘每月（皆取期間最後一個交易日）
-function periodLast(series) {
-    if (series.length <= 120) return series;
-    const key = series.length <= 520
-        ? d => { const t = new Date(d.date + 'T00:00'); t.setDate(t.getDate() - (t.getDay() + 6) % 7); return t.toDateString(); } // 該週週一
-        : d => d.date.slice(0, 7);
-    return series.filter((d, i) => i === series.length - 1 || key(series[i + 1]) !== key(d));
-}
 
 // 50/50 策略股票與現金明細
 // ===== 持有期間報酬分布（勝率表點擊）=====

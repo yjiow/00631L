@@ -11,5 +11,8 @@ export const fmtMoney = v => Math.abs(v) >= 1e4
 // 小數比例 → 百分比（null 顯示 —）
 export const fmtRate = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
 
+// 數值正負 → 台股漲跌色 class（紅漲綠跌；0 / null 不上色）
+export const signClass = v => v > 0 ? 'positive' : v < 0 ? 'negative' : '';
+
 // 'YYYY-MM-DD' → 'YYYY/MM'
 export const ym = date => date.slice(0, 7).replace('-', '/');

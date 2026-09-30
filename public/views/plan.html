@@ -1,6 +1,8 @@
-<!-- views/plan.html — 投資計畫模擬 -->
-<div class="panel-card plan-params">
+<!-- views/plan.html — 投資計畫模擬（寬螢幕左參數固定、右結果捲動；窄螢幕上下排列） -->
+<div class="plan-layout">
+<div class="panel-card plan-params" id="plan-params">
     <div class="panel-title">投資計畫模擬 (PLAN_SIM)</div>
+    <p class="plan-device-tip">建議使用電腦瀏覽，可同時檢視參數與結果。</p>
     <form id="plan-form" novalidate>
         <!-- 頁籤列（手機版改為「步驟 n/5」左右切換） -->
         <div class="plan-tabs" role="tablist">
@@ -26,7 +28,7 @@
                 </label>
                 <label class="plan-field">
                     <span>初始資金（元）</span>
-                    <input type="number" name="initialCapital" min="0" step="10000" required>
+                    <input type="text" name="initialCapital" inputmode="numeric" data-money required>
                 </label>
                 <label class="plan-field">
                     <span>股票比例（%）</span>
@@ -62,14 +64,14 @@
                 </label>
             </div>
             <div class="plan-form plan-sub" id="purchase-inflow" hidden>
-                <label class="plan-field">
+                <div class="plan-field plan-field-wide">
                     <span>投入方式</span>
-                    <select name="purchaseInflowMode">
-                        <option value="ratio">依股票比例投入</option>
-                        <option value="amount">入帳金額買進</option>
-                        <option value="threshold">達門檻才買</option>
-                    </select>
-                </label>
+                    <div class="plan-radio-row">
+                        <label><input type="radio" name="purchaseInflowMode" value="threshold"><span>達門檻才買</span></label>
+                        <label><input type="radio" name="purchaseInflowMode" value="ratio"><span>依股票比例</span></label>
+                        <label><input type="radio" name="purchaseInflowMode" value="amount"><span>入帳金額</span></label>
+                    </div>
+                </div>
                 <label class="plan-field" id="purchase-threshold-field">
                     <span>門檻（%）</span>
                     <input type="number" name="purchaseThreshold" min="1" max="200" step="5">
@@ -90,7 +92,7 @@
                 </label>
                 <label class="plan-field" id="purchase-amount-field">
                     <span>固定金額（元，上限）</span>
-                    <input type="number" name="purchaseAmount" min="0" step="1000">
+                    <input type="text" name="purchaseAmount" inputmode="numeric" data-money>
                 </label>
             </div>
         </section>
@@ -112,7 +114,7 @@
                 <label class="plan-option">
                     <input type="radio" name="rebalanceMode" value="threshold">
                     <span class="plan-option-title">漲跌幅再平衡</span>
-                    <span class="plan-option-desc">股票與現金偏離超過門檻時調回（50/50 同首頁規則）</span>
+                    <span class="plan-option-desc">股市值與現金相差超過門檻（預設 20%）時調回目標比例；預設即首頁 50/50 策略</span>
                 </label>
             </div>
             <div class="plan-form plan-sub" id="rebalance-periodic" hidden>
@@ -176,10 +178,25 @@
         <span id="plan-banner-text"></span>
         <button type="button" id="plan-reset" class="plan-banner-btn" hidden>恢復預設</button>
     </div>
+    <!-- 錨點列（固定於導覽列下方） -->
+    <div class="plan-anchors" id="plan-anchors">
+        <button type="button" data-target="plan-params" class="plan-anchor-params">參數</button>
+        <button type="button" data-target="plan-rolling">分布</button>
+        <button type="button" data-target="plan-detail">明細</button>
+        <button type="button" data-target="plan-yearly">年度表</button>
+    </div>
     <!-- 分布 -->
-    <div class="panel-card">
+    <div class="panel-card" id="plan-rolling">
         <div class="panel-title">滾動起點分布 (ROLLING)</div>
         <p id="rolling-desc" class="plan-desc"></p>
+        <div class="plan-dataend">
+            <span class="plan-dataend-label">資料截止</span>
+            <div class="plan-seg" id="rolling-end">
+                <button type="button" data-end="latest" class="active">最新</button>
+                <button type="button" data-end="ai" title="只用 2022/12/31 以前的資料，排除 2023 年起的 AI 行情">AI 行情前</button>
+            </div>
+            <span class="plan-dataend-note" id="rolling-end-note" hidden>年數越短，涵蓋的起點年代越多</span>
+        </div>
         <div class="plan-stats">
             <div class="data-box"><label>資金不斷鏈機率</label><span id="rs-success">---</span></div>
             <div class="data-box"><label>期末資產 最差</label><span id="rs-worst">---</span></div>
@@ -187,7 +204,7 @@
             <div class="data-box"><label>期末資產 最好</label><span id="rs-best">---</span></div>
             <div class="data-box"><label>年化報酬 XIRR 中位</label><span id="rs-xirr">---</span></div>
         </div>
-        <p id="rolling-compare" class="plan-compare"></p>
+        <div id="rolling-compare" class="plan-compare"></div>
         <div class="plan-toolbar">
             <div class="plan-seg" id="rolling-sort">
                 <button type="button" data-sort="time" class="active">依時間</button>
@@ -207,18 +224,44 @@
 
     <!-- 明細 -->
     <div class="panel-card" id="plan-detail">
-        <div class="panel-title">單一起點明細 (DETAIL)</div>
+        <div class="panel-title">單一起點明細 (DETAIL) <button type="button" class="magnify-btn" id="btn-allocation" title="資產配置：股票 vs 現金"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button></div>
         <p id="detail-desc" class="plan-desc"></p>
+        <p class="plan-alert" id="dt-broke-alert" hidden></p>
         <div class="plan-stats">
             <div class="data-box"><label>期末總資產</label><span id="dt-final">---</span></div>
             <div class="data-box"><label>累計淨投入</label><span id="dt-invested">---</span></div>
             <div class="data-box"><label>年化報酬 XIRR</label><span id="dt-xirr">---</span></div>
-            <div class="data-box"><label>最大回撤</label><span id="dt-mdd">---</span></div>
+            <div class="data-box" id="dt-mdd-box"><label>最大回撤</label><span id="dt-mdd">---</span></div>
             <div class="data-box"><label>累計交易成本</label><span id="dt-cost">---</span></div>
-            <div class="data-box" id="dt-broke-box" hidden><label>資金斷鏈日</label><span id="dt-broke">---</span></div>
         </div>
         <div class="chart-wrapper">
             <canvas id="chartPlanAsset"></canvas>
         </div>
+
+        <!-- 年度明細 -->
+        <div class="yearly" id="plan-yearly">
+            <div class="yearly-title">年度明細</div>
+            <div class="yearly-scroll">
+                <table class="yearly-table">
+                    <thead><tr><th>年度</th><th>入帳</th><th>扣款</th><th>買進</th><th>賣出</th><th>交易成本</th><th>年底資產</th></tr></thead>
+                    <tbody id="yearly-body"></tbody>
+                </table>
+            </div>
+            <button type="button" class="yearly-toggle" id="yearly-toggle" hidden></button>
+        </div>
     </div>
+</div>
+
+<!-- 資產配置 Modal（明細標題放大鏡開啟，同首頁 50/50 明細） -->
+<div id="modal-allocation" class="modal-overlay" style="display:none">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-allocation-title">資產配置：00631L 股票 vs 現金</div>
+            <button class="modal-close" id="modal-allocation-close" aria-label="關閉"><span class="modal-close-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="modal-chart-wrapper">
+            <canvas id="chartPlanAllocation"></canvas>
+        </div>
+    </div>
+</div>
 </div>

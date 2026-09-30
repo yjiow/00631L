@@ -53,3 +53,12 @@ export function downsampleIdx(n, seriesList) {
     }
     return [...keep].sort((a, b) => a - b);
 }
+
+// 依交易日數切換粒度：≤120 每日、≤520 每週、其餘每月（皆取期間最後一個交易日）
+export function periodLast(series) {
+    if (series.length <= 120) return series;
+    const key = series.length <= 520
+        ? d => { const t = new Date(d.date + 'T00:00'); t.setDate(t.getDate() - (t.getDay() + 6) % 7); return t.toDateString(); } // 該週週一
+        : d => d.date.slice(0, 7);
+    return series.filter((d, i) => i === series.length - 1 || key(series[i + 1]) !== key(d));
+}

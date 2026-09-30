@@ -15,13 +15,14 @@
 .plan-field input,
 .plan-field select {
     width: 100%;
-    padding: 10px 12px;
+    height: var(--plan-input-h, 38px); /* 全部輸入元件統一高度（窄版 34px，見 @container） */
+    padding: 0 12px;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(0, 210, 255, 0.2);
     border-radius: 3px;
     color: var(--neon-blue);
     font-family: var(--font-num);
-    font-size: 1rem;
+    font-size: 0.95rem;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -56,10 +57,10 @@
 }
 .cf-row .plan-field[hidden] input::placeholder { color: transparent; }
 .cf-row .plan-field input,
-.cf-row .plan-field select { height: 38px; padding: 0 10px; font-size: 0.92rem; }
+.cf-row .plan-field select { padding: 0 10px; font-size: 0.92rem; }
 .cf-name input { color: var(--text-primary); font-family: inherit; }
 .cf-del {
-    height: 36px;
+    height: var(--plan-input-h, 38px);
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 3px;
@@ -100,6 +101,27 @@
 .plan-option:has(input:checked) .plan-option-title { color: var(--neon-blue); }
 .plan-option-desc { color: var(--text-muted); font-size: 0.78rem; line-height: 1.6; }
 .plan-sub[hidden], .plan-field[hidden] { display: none; }
+.plan-field-wide { grid-column: 1 / -1; }
+/* 一行多項單選（投入方式） */
+.plan-radio-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.plan-radio-row label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: var(--plan-input-h, 38px);
+    padding: 0 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.plan-radio-row label:hover { border-color: rgba(0, 210, 255, 0.45); }
+.plan-radio-row label:has(input:checked) { border-color: var(--neon-blue); background: rgba(0, 210, 255, 0.08); }
+.plan-radio-row input { width: auto; height: auto; margin: 0; padding: 0; accent-color: var(--neon-blue); } /* 不套欄位統一高度 */
+.plan-radio-row span { font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap; }
+.plan-radio-row label:has(input:checked) span { color: var(--neon-blue); }
 .plan-sub + .plan-sub { margin-top: 0; }
 .plan-range { margin-top: 10px; margin-bottom: 14px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; }
 .plan-check { display: flex; align-items: flex-start; gap: 10px; margin-top: 18px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; cursor: pointer; }
@@ -132,6 +154,18 @@
     transition: color 0.2s, border-color 0.2s;
 }
 .plan-banner-btn:hover { color: var(--neon-blue); border-color: var(--neon-blue); }
+.plan-alert {
+    margin: -8px 0 18px;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 0, 127, 0.45);
+    border-left: 3px solid var(--neon-pink);
+    border-radius: 3px;
+    background: rgba(255, 0, 127, 0.08);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+.plan-alert[hidden] { display: none; }
 .plan-hint {
     margin-top: 14px;
     padding: 10px 14px;
@@ -141,6 +175,69 @@
     color: var(--text-secondary);
     line-height: 1.7;
 }
+
+/* 錨點列：固定於導覽列下方（top 由 planAnchors.js 依導覽列高度設定） */
+.plan-anchors {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 8px;
+    background: rgba(13, 17, 23, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+.plan-anchors button {
+    flex: 1;
+    padding: 7px 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.plan-anchors button:hover { color: var(--neon-blue); }
+.plan-anchors .plan-anchor-params { display: none; } /* 窄螢幕才顯示（寬螢幕參數固定在左欄） */
+.plan-anchors button.active { color: var(--neon-blue); background: rgba(0, 210, 255, 0.1); border-color: rgba(0, 210, 255, 0.35); }
+
+/* 年度明細表 */
+.yearly { margin-top: 28px; }
+.yearly-title { margin-bottom: 12px; font-size: 0.95rem; color: var(--text-card-title); }
+.yearly-scroll { overflow-x: auto; }
+.yearly-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 0.85rem; }
+.yearly-table th, .yearly-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); white-space: nowrap; }
+.yearly-table thead th { color: var(--text-secondary); font-weight: 500; text-align: right; border-bottom-color: rgba(255, 255, 255, 0.12); }
+.yearly-table thead th:first-child, .yearly-table tbody th { text-align: left; }
+.yearly-table tbody th { color: var(--text-primary); font-weight: 500; }
+.yearly-table td { text-align: right; font-family: var(--font-num); color: var(--text-secondary); }
+.yearly-table td.positive { color: var(--color-up); }
+.yearly-table td.negative { color: var(--color-down); }
+.yearly-table td.yearly-end { color: var(--neon-blue); }
+.yearly-table td.yearly-empty { color: var(--text-faint); }
+/* 左右捲動時年度欄固定 */
+.yearly-table thead th:first-child, .yearly-table tbody th { position: sticky; left: 0; z-index: 1; background: var(--bg-card); }
+.yearly-table tbody tr:hover { background: rgba(0, 210, 255, 0.04); }
+.yearly-range { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text-faint); font-family: var(--font-num); font-weight: 400; }
+.yearly-toggle {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    background: transparent;
+    border: 1px dashed rgba(0, 210, 255, 0.3);
+    border-radius: 3px;
+    color: var(--neon-blue);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.yearly-toggle[hidden] { display: none; }
+.yearly-toggle:hover { background: rgba(0, 210, 255, 0.06); }
 
 /* 頁籤 */
 .plan-tabs { display: flex; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 22px; }
@@ -232,7 +329,14 @@
     margin-bottom: 20px;
 }
 .plan-stats .data-box span { font-size: 1.15rem; }
-.plan-compare { margin: -8px 0 20px; font-size: 0.82rem; color: var(--text-muted); }
+.plan-stats .data-box span.positive { color: var(--color-up); }   /* 紅漲 */
+.plan-stats .data-box span.negative { color: var(--color-down); } /* 綠跌 */
+.plan-compare { margin: -8px 0 20px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.8; }
+.plan-compare .compare-val { font-family: var(--font-num); font-weight: 700; color: var(--text-primary); }
+.plan-dataend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: -8px 0 18px; }
+.plan-dataend-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 1px; }
+.plan-dataend-note { font-size: 0.78rem; color: var(--text-muted); }
+.plan-dataend-note[hidden] { display: none; }
 
 .plan-toolbar {
     display: flex;
@@ -257,15 +361,45 @@
 .plan-seg button:hover { color: var(--neon-blue); }
 .plan-seg button.active { background: rgba(0, 210, 255, 0.12); color: var(--neon-blue); }
 
-@media (max-width: 600px) {
-    .plan-form, .plan-stats { grid-template-columns: 1fr 1fr; }
+/* 窄螢幕才顯示的電腦版建議 */
+.plan-device-tip { margin: -12px 0 16px; font-size: 0.78rem; color: var(--text-muted); }
+
+/* 寬螢幕：左參數（固定於導覽列下方，過高時自身捲動）、右結果（隨頁面捲動） */
+@media (min-width: 1100px) {
+    .plan-layout { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 24px; align-items: start; }
+    .plan-layout > .plan-params {
+        position: sticky;
+        top: calc(var(--plan-nav-h, 64px) + 12px);
+        max-height: calc(100vh - var(--plan-nav-h, 64px) - 24px);
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding: 24px 22px;
+    }
+    .plan-layout > .plan-params .panel-title { margin-bottom: 16px; }
+    .plan-device-tip { display: none; }
+    /* 左欄過長時「開始模擬」固定於左欄底部 */
+    .plan-layout > .plan-params .plan-actions {
+        position: sticky;
+        bottom: -24px; /* 延伸蓋住卡片下內距，避免內距中露出捲動內容 */
+        z-index: 2;
+        padding-bottom: 24px;
+        background: var(--bg-card);
+    }
+}
+
+/* 參數卡變窄時（手機、寬螢幕左欄）：欄位兩欄、現金流每列兩行、選項單欄、按鈕上下全寬 */
+.plan-params { container-type: inline-size; }
+@container (max-width: 560px) {
+    #plan-form { --plan-input-h: 34px; }
+    .plan-field input, .plan-field select { padding: 0 10px; }
+    .plan-form { grid-template-columns: 1fr 1fr; }
     /* 現金流每列兩行：名稱 / 金額 / ✕ ｜ 週期 / 月 / 日 / 起 / 迄 */
     .cf-row { display: flex; flex-wrap: wrap; gap: 8px 6px; padding: 10px; }
     .cf-row::before { content: ""; flex-basis: 100%; order: 2; } /* 換行 */
     .cf-row > * { order: 3; flex: 1 1 0; min-width: 0; }
     .cf-row > .cf-name { order: 1; flex: 1.3 1 0; }
     .cf-row > .cf-name + .plan-field { order: 1; }
-    .cf-row > .cf-del { order: 1; flex: 0 0 32px; height: 32px; align-self: flex-end; }
+    .cf-row > .cf-del { order: 1; flex: 0 0 var(--plan-input-h); align-self: flex-end; }
     .cf-row > .plan-field:has(select) { flex: 0 0 68px; }
     .cf-row .plan-field[hidden] { display: none; }
     .cf-row .plan-field { gap: 4px; }
@@ -273,9 +407,22 @@
     .cf-row .plan-field > span[data-short] { font-size: 0; }
     .cf-row .plan-field > span[data-short]::after { content: attr(data-short); font-size: 0.72rem; }
     .cf-row .plan-field input,
-    .cf-row .plan-field select { height: 32px; padding: 0 6px; font-size: 0.85rem; }
+    .cf-row .plan-field select { padding: 0 6px; font-size: 0.85rem; }
     .plan-options { grid-template-columns: 1fr; gap: 8px; }
     .plan-option { padding: 10px 12px 10px 38px; }
+    .plan-actions { flex-direction: column-reverse; align-items: stretch; }
+    .plan-submit { width: 100%; }
+    /* 緊湊頁籤：編號在上、名稱在下 */
+    .plan-tab { flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.76rem; }
+    .plan-tab-status { font-size: 0.66rem; line-height: 1; min-height: 0.66rem; }
+}
+
+@media (max-width: 1099px) {
+    .plan-anchors .plan-anchor-params { display: block; }
+}
+
+@media (max-width: 600px) {
+    .plan-stats { grid-template-columns: 1fr 1fr; }
     .plan-tabs { display: none; }
     .plan-steps-mobile {
         display: flex;
@@ -285,7 +432,5 @@
         color: var(--neon-blue);
         font-size: 0.95rem;
     }
-    .plan-actions { flex-direction: column-reverse; align-items: stretch; }
-    .plan-submit { width: 100%; }
     .plan-stats .data-box span { font-size: 1rem; }
 }

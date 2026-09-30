@@ -6,13 +6,16 @@
 
 import { fetchBacktestData } from '../../core/database.js';
 import { DEFAULT_PLAN } from '../../core/plan/defaults.js';
+import { AI_CUTOFF } from '../../core/marketDates.js';
 import { toSeries, simulatePlan, simulateRolling } from '../../core/plan/simulate.js';
 import { fillForm, readForm, syncPurchase, syncRebalance, syncCosts } from './planForm.js';
 import { initCashflowList } from './cashflowList.js';
+import { bindMoneyInputs } from '../../ui/moneyInput.js';
 import { initTabs, updateStatus, markError, clearErrors } from './planTabs.js';
 import { renderRolling, renderCompare } from './rollingPanel.js';
-import { renderDetail } from './detailPanel.js';
+import { renderDetail, initDetailPanel } from './detailPanel.js';
 import { savePlan, loadPlan, clearPlan } from './planStorage.js';
+import { initAnchors, refreshAnchors, scrollToSection } from './planAnchors.js';
 
 const $ = id => document.getElementById(id);
 
@@ -22,7 +25,17 @@ const TARGET_FIELD = { '00631L': 't2_close', '0050': 'tw50_close' };
 let rows = null;          // database 全部資料，載入一次
 const seriesCache = {};   // 標的 → { dates, prices }
 
-const seriesOf = target => seriesCache[target] ??= toSeries(rows, TARGET_FIELD[target]);
+// 標的股價，end（資料截止日，null = 最新）之後的資料截掉；起點索引與完整序列相同
+function seriesOf(target, end = null) {
+    const key = `${target}|${end}`;
+    if (!seriesCache[key]) {
+        const full = seriesCache[target] ??= toSeries(rows, TARGET_FIELD[target]);
+        const n = end ? full.dates.findLastIndex(d => d <= end) + 1 : full.dates.length;
+        seriesCache[key] = { dates: full.dates.slice(0, n), prices: full.prices.slice(0, n) };
+    }
+    return seriesCache[key];
+}
+let dataEnd = null; // 資料截止：null 最新 | AI_CUTOFF（檢視方式，不存入參數）
 let currentPlan = DEFAULT_PLAN;
 // 結果來源：'default' 預設範例 | 'saved' 上次保存 | 'user' 本次使用者按下模擬（不顯示提示）
 let source = null, savedAt = null;
@@ -37,7 +50,7 @@ function renderBanner() {
     $('plan-reset').hidden = source !== 'saved';
     $('plan-banner-text').textContent = source === 'saved'
         ? `已載入您上次的參數（${fmtTime(savedAt)}），調整後按「開始模擬」重新計算。`
-        : '以下為預設參數的範例結果，請調整參數後按「開始模擬」。';
+        : '以下為預設參數（首頁 50/50 策略＋每月 1 萬）的範例結果，請調整參數後按「開始模擬」。'; // 文字對應 DEFAULT_PLAN
 }
 
 function showError(msg) {
@@ -46,8 +59,8 @@ function showError(msg) {
 }
 
 function showDetail(startIdx, scroll) {
-    renderDetail(simulatePlan(seriesOf(currentPlan.target), startIdx, currentPlan));
-    if (scroll) $('plan-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    renderDetail(simulatePlan(seriesOf(currentPlan.target, dataEnd), startIdx, currentPlan), currentPlan.years);
+    if (scroll) scrollToSection('plan-detail');
 }
 
 // save：使用者按下「開始模擬」時保存參數
@@ -56,16 +69,56 @@ function run({ save = false } = {}) {
     const { plan, error, field } = readForm($('plan-form'));
     if (error) { markError(field); return showError(error); }
     clearErrors();
-    const rs = simulateRolling(seriesOf(plan.target), plan);
-    if (!rs.length) return showError(`資料不足 ${plan.years} 年，請縮短模擬年數`);
-    showError(null);
-    currentPlan = plan;
+    if (!compute(plan)) return;
     if (save) { savePlan(plan); source = 'user'; }
     renderBanner();
+    // 窄螢幕（上下排列）按下模擬後捲到結果；寬螢幕結果本就在右側
+    if (save && !window.matchMedia('(min-width: 1100px)').matches) scrollToSection('plan-rolling');
+}
+
+// 0050 對照：沿用現金流與交易成本，改為 100% 投入、每筆入帳當天全數買進（零頭留現金）、不再平衡
+const buyHold0050 = plan => ({
+    ...plan, target: '0050', stockRatio: 1,
+    purchase: { ...plan.purchase, timing: 'inflow', inflowMode: 'ratio' },
+    rebalance: { ...plan.rebalance, mode: 'none' }
+});
+
+// 以 plan 與目前資料截止日計算並顯示結果；資料不足回傳 false
+function compute(plan) {
+    const series = seriesOf(plan.target, dataEnd);
+    const rs = simulateRolling(series, plan);
+    if (!rs.length) {
+        showError(dataEnd ? `資料只到 2022 年底，不足 ${plan.years} 年，請縮短模擬年數或切回「最新」` : `資料不足 ${plan.years} 年，請縮短模擬年數`);
+        return false;
+    }
+    showError(null);
+    currentPlan = plan;
     $('plan-results').hidden = false;
+    $('rolling-end-note').hidden = !dataEnd;
+    renderCompare([
+        { label: '同樣現金流 100% 買進持有 0050', rs: simulateRolling(seriesOf('0050', dataEnd), buyHold0050(plan)) },
+        dataEnd
+            ? { label: '資料含最新行情', rs: simulateRolling(seriesOf(plan.target), plan) }
+            : { label: '資料只到 AI 行情前（2022 年底）', rs: simulateRolling(seriesOf(plan.target, AI_CUTOFF), plan) }
+    ]);
     let first = true; // 初次預設選中位數時不捲動
-    renderCompare(simulateRolling(seriesOf('0050'), { ...plan, target: '0050' }));
-    renderRolling(rs, plan.years, idx => { showDetail(idx, !first); first = false; });
+    renderRolling(rs, plan.years, series.dates.at(-1), idx => { showDetail(idx, !first); first = false; });
+    refreshAnchors();
+    return true;
+}
+
+// 資料截止切換：以目前結果的參數重算（不讀表單、不保存）
+function bindDataEnd() {
+    const seg = $('rolling-end');
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('active', (b.dataset.end === 'ai') === !!dataEnd));
+    seg.addEventListener('click', e => {
+        const btn = e.target.closest('[data-end]');
+        if (!btn || !rows) return;
+        const prev = dataEnd;
+        dataEnd = btn.dataset.end === 'ai' ? AI_CUTOFF : null;
+        if (!compute(currentPlan)) { dataEnd = prev; return; }
+        seg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    });
 }
 
 export async function initPlan() {
@@ -77,6 +130,7 @@ export async function initPlan() {
         source = saved ? 'saved' : 'default';
     }
     initCashflowList($('cf-list'));
+    bindMoneyInputs(form);
     fillForm(form, DEFAULT_PLAN);
     initTabs(form);           // 以預設值為「預設」狀態基準
     fillForm(form, currentPlan);
@@ -86,6 +140,9 @@ export async function initPlan() {
     form.addEventListener('change', sync);
     form.addEventListener('input', sync);
     form.addEventListener('submit', e => { e.preventDefault(); run({ save: true }); });
+    bindDataEnd();
+    initDetailPanel();
+    initAnchors();
     $('plan-reset').addEventListener('click', () => {
         clearPlan();
         currentPlan = DEFAULT_PLAN;
