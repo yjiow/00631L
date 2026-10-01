@@ -1,0 +1,233 @@
+/* ===== 主視圖注入區 ===== */
+#view-stage {
+    flex: 1;
+    padding: 30px 20px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    transition: opacity 0.25s ease;
+}
+
+#view-stage.fade-out { opacity: 0; }
+#view-stage.fade-in  { opacity: 1; }
+
+/* ===== 共用元件樣式（供各 views/ 使用）===== */
+.panel-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.1); /* 試用 B：半透明白（原 A：rgba(0, 210, 255, 0.15)） */
+    border-radius: 4px;
+    padding: 30px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* HUD 斜切角 */
+.panel-card::before {
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    border-width: 0 14px 14px 0;
+    border-style: solid;
+    border-color: transparent var(--bg-main) transparent transparent;
+}
+
+.panel-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--neon-blue);
+    margin-bottom: 24px;
+    border-left: 3px solid var(--neon-blue);
+    padding-left: 10px;
+    letter-spacing: 1px;
+}
+
+/* 推進器滑桿 */
+.input-group { margin-bottom: 24px; }
+
+.input-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.input-value {
+    color: var(--neon-blue);
+    font-family: var(--font-num);
+    font-weight: bold;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    outline: none;
+    border: 1px solid rgba(0, 210, 255, 0.2);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 22px;
+    background: var(--neon-blue);
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0, 210, 255, 0.4);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    background: var(--neon-blue);
+    box-shadow: 0 0 14px var(--neon-blue);
+}
+
+/* 數據卡片 */
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 24px;
+}
+
+@media (max-width: 600px) {
+    .data-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.data-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(0, 210, 255, 0.18);
+    padding: 14px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.data-box label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.data-box span {
+    font-family: var(--font-num);
+    font-size: 1.3rem;
+    color: var(--neon-blue);
+}
+
+/* 主要 CTA 按鈕 */
+.btn-primary {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border-radius: 3px;
+    text-align: center;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+    background: rgba(0, 210, 255, 0.1);
+    box-shadow: 0 0 18px rgba(0, 210, 255, 0.35);
+}
+
+/* 雙欄 Grid 容器（供 views 使用）*/
+.layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 28px;
+}
+
+@media (max-width: 968px) {
+    .layout-grid { grid-template-columns: 1fr; }
+}
+
+/* 放大鏡按鈕（明細彈窗開關） */
+.magnify-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.6;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.magnify-btn:hover { opacity: 1; color: var(--neon-blue); }
+
+.chart-wrapper { position: relative; height: 400px; }
+
+.chart-note {
+    margin-top: 10px;
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Modal（共用：首頁 50/50 明細、投資計畫資產配置等） */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-panel {
+    background: var(--bg-card);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 4px;
+    padding: 24px;
+    width: min(95vw, 1000px);
+    box-shadow: 0 0 40px rgba(0, 210, 255, 0.15);
+}
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+.modal-title {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--neon-blue);
+    font-size: 1rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.modal-close:hover { color: var(--neon-pink); }
+
+/* 關閉圖示：CSS mask 繪製 ✕（views 內不寫 inline <svg>） */
+.modal-close-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.modal-chart-wrapper { height: 500px; position: relative; }
+
+@media (max-width: 768px) {
+    .chart-wrapper { height: 300px; }
+    .modal-chart-wrapper { height: 360px; }
+}

@@ -1,0 +1,16 @@
+/* ===== 關於我（views/about.html） ===== */
+.about-body { flex: 1; min-width: 280px; font-size: 0.9rem; line-height: 1.8; color: var(--text-secondary); }
+.about-section { margin-bottom: 28px; }
+.about-section p { margin-bottom: 12px; }
+.about-heading { margin-bottom: 10px; font-size: 0.95rem; font-weight: 500; color: var(--text-card-title); }
+.about-list,
+.about-log { list-style: none; padding: 0; }
+.about-list li { position: relative; padding-left: 16px; margin-bottom: 6px; }
+.about-list li::before { content: ""; position: absolute; left: 2px; top: 0.75em; width: 5px; height: 5px; border-radius: 50%; background: var(--neon-blue); opacity: 0.7; }
+.about-list strong { font-weight: 500; color: var(--text-primary); }
+.about-num { font-family: var(--font-num); color: var(--text-primary); }
+.about-log li { margin-bottom: 6px; }
+.about-stamp { margin-right: 10px; font-family: 'Share Tech Mono', monospace; color: var(--neon-blue); }
+.about-stack { border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 14px; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-blue); }
+.about-name { font-size: 0.95rem; font-weight: 500; color: var(--text-card-title); }
+.about-note { font-size: 0.8rem; color: var(--text-muted); }

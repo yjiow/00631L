@@ -6,7 +6,7 @@
  */
 
 import { normalizePlan } from './defaults.js';
-import { lowerBound, addYears } from './calendar.js';
+import { lowerBound, addYears, daysBetween } from './calendar.js';
 import { buildSchedule } from './schedule.js';
 import { Account } from './account.js';
 import { xirr } from './xirr.js';
@@ -22,10 +22,10 @@ export function toSeries(rows, field) {
 function buyOnInflow(s, amount, price) {
     const { inflowMode, threshold } = s.plan.purchase;
     const { account } = s, ratio = s.plan.stockRatio;
-    if (inflowMode === 'amount') return account.buy(price, amount);
+    if (inflowMode === 'amount') return account.buy(price, amount, 'inflow');
     if (inflowMode === 'threshold' && canRebalance(ratio) &&
         !drifted(account.shares * price, account.cash, ratio, threshold)) return 0;
-    return account.buy(price, topUpBudget(account, price, ratio));
+    return account.buy(price, topUpBudget(account, price, ratio), 'inflow');
 }
 
 // 各動作的執行方式；回傳 false 表示資金斷鏈
@@ -34,14 +34,14 @@ const HANDLERS = {
         s.account.cash += act.amount;
         s.invested += act.amount;
         s.cashflows.push({ date: s.date, amount: -act.amount });
-        s.log('flow', { amount: act.amount, shares: 0, cost: 0 });
+        s.log('flow', { amount: act.amount, shares: 0, cost: 0, name: act.name });
         if (!s.account.cover(price)) return false;
         if (act.amount > 0 && s.plan.purchase.timing === 'inflow') buyOnInflow(s, act.amount, price);
         return true;
     },
     buy(s, act, price) {
         const { mode, amount } = s.plan.purchase;
-        s.account.buy(price, mode === 'all' ? s.account.cash : amount);
+        s.account.buy(price, mode === 'all' ? s.account.cash : amount, 'purchase');
         return true;
     },
     rebalance(s, act, price) {
@@ -65,7 +65,7 @@ export function simulatePlan(series, startIdx, plan, { detail = true } = {}) {
         log: (type, t) => detail && trades.push({ date: s.date, type, ...t })
     };
     s.account = new Account(p.initialCapital, p.costs, s.log);
-    s.account.buy(prices[startIdx], p.initialCapital * p.stockRatio);
+    s.account.buy(prices[startIdx], p.initialCapital * p.stockRatio, 'initial');
 
     const acts = buildSchedule(dates, startIdx, endIdx, p);
     let peak = 0, mdd = 0, value = 0, brokeDate = null, a = 0;
@@ -75,6 +75,8 @@ export function simulatePlan(series, startIdx, plan, { detail = true } = {}) {
 
     for (let i = startIdx; i <= endIdx && !brokeDate; i++) {
         s.date = dates[i];
+        // 現金利息：固定年利率，按與上一交易日相隔的實際日曆天數比例計息（逐期滾入餘額）
+        if (i > startIdx && p.cashRate) s.account.cash += s.account.cash * p.cashRate * daysBetween(dates[i - 1], dates[i]) / 365;
         while (a < acts.length && acts[a].idx === i) {
             const act = acts[a++];
             if (!HANDLERS[act.kind](s, act, prices[i])) { brokeDate = dates[i]; break; }

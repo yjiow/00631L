@@ -8,6 +8,9 @@ export const fmtMoney = v => Math.abs(v) >= 1e4
     ? Math.round(v / 1e4).toLocaleString('en-US') + ' 萬'
     : Math.round(v).toLocaleString('en-US') + ' 元';
 
+// 金額：一律顯示「元」（不切換萬），供需要逐筆加總核對的明細使用
+export const fmtYuan = v => Math.round(v).toLocaleString('en-US') + ' 元';
+
 // 小數比例 → 百分比（null 顯示 —）
 export const fmtRate = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
 
@@ -16,3 +19,6 @@ export const signClass = v => v > 0 ? 'positive' : v < 0 ? 'negative' : '';
 
 // 'YYYY-MM-DD' → 'YYYY/MM'
 export const ym = date => date.slice(0, 7).replace('-', '/');
+
+// 'YYYY-MM-DD' → 'YYYY/MM/DD'
+export const ymd = date => date.replace(/-/g, '/');

@@ -1,7 +1,7 @@
 <!-- views/plan.html — 投資計畫模擬（寬螢幕左參數固定、右結果捲動；窄螢幕上下排列） -->
 <div class="plan-layout">
 <div class="panel-card plan-params" id="plan-params">
-    <div class="panel-title">投資計畫模擬 (PLAN_SIM)</div>
+    <div class="panel-title">投資計畫模擬 (PLAN_SIM) <button type="button" class="magnify-btn" id="plan-share" title="分享此計畫參數"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button><span id="plan-share-feedback" class="plan-share-feedback" hidden></span></div>
     <p class="plan-device-tip">建議使用電腦瀏覽，可同時檢視參數與結果。</p>
     <form id="plan-form" novalidate>
         <!-- 頁籤列（手機版改為「步驟 n/5」左右切換） -->
@@ -21,6 +21,11 @@
         <!-- 1 基本設定（必填） -->
         <section class="plan-pane" data-pane="0">
             <p class="plan-pane-desc">標的 00631L。填完這一頁即可開始模擬，後面各頁皆有預設值。</p>
+            <div class="plan-presets" id="plan-presets">
+                <p class="plan-presets-hint">不知道怎麼填？點選下方情境快速開始</p>
+                <div class="plan-presets-buttons" data-role="buttons"></div>
+                <p class="plan-presets-desc" data-role="desc" hidden></p>
+            </div>
             <div class="plan-form">
                 <label class="plan-field">
                     <span>模擬年數</span>
@@ -162,6 +167,13 @@
                 <input type="checkbox" name="costDisabled">
                 <span>不計交易成本（首頁策略概覽未計交易成本，勾選後可與首頁數字比對）</span>
             </label>
+            <p class="plan-pane-desc">現金利息：模擬活儲 / 定存利息，固定年利率（不反映歷史升降息），按實際天數計息；填 0 表示不計。</p>
+            <div class="plan-form">
+                <label class="plan-field">
+                    <span>現金年利率（%）</span>
+                    <input type="number" name="cashRate" min="0" max="10" step="0.05">
+                </label>
+            </div>
         </section>
 
         <div class="plan-actions">
@@ -262,6 +274,23 @@
         <div class="modal-chart-wrapper">
             <canvas id="chartPlanAllocation"></canvas>
         </div>
+    </div>
+</div>
+
+<!-- 年度明細 Modal（點年度明細表的年度列開啟） -->
+<div id="modal-yearly" class="modal-overlay" style="display:none">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-yearly-title">年度明細</div>
+            <button class="modal-close" id="modal-yearly-close" aria-label="關閉"><span class="modal-close-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="yearly-modal-scroll">
+            <table class="yearly-modal-table">
+                <thead><tr><th>日期</th><th>類型</th><th>說明</th><th>現金</th><th>交易後現金</th><th>股票市值</th></tr></thead>
+                <tbody id="modal-yearly-body"></tbody>
+            </table>
+        </div>
+        <p class="yearly-modal-note" id="modal-yearly-note" hidden></p>
     </div>
 </div>
 </div>

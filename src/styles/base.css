@@ -1,0 +1,65 @@
+/* ===== 全域 CSS 變數 ===== */
+:root {
+    --bg-main:    #0D1117;
+    --bg-card:    #1A1F2C;
+    --neon-blue:  #00D2FF;
+    --blue-soft:  #4AAFD5;   /* 沉穩藍：大面積標題用，亮度低於霓虹藍 */
+    --neon-pink:  #FF007F;
+    --text-light: #FFFFFF;
+    --text-primary:   #E6EDF3;   /* 主要文字：主標題、全站預設 */
+    --text-card-title: #C9D1D9;  /* 卡片標題 */
+    --text-secondary: #9DA7B3;   /* 次要文字：說明、欄位標籤 */
+    --text-muted:     #8B949E;   /* 輔助文字：日期區間、註記 */
+    --text-faint:     #6E7681;   /* 弱化文字：免責聲明、頁尾 */
+    --color-up:   #F87171;   /* 漲：柔和珊瑚紅（台股紅漲） */
+    --color-down: #34D399;   /* 跌：薄荷綠（台股綠跌） */
+    --color-best: #E3B341;   /* 最佳標記（皇冠），不代表漲跌 */
+    --font-num:   'JetBrains Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans TC', 'Share Tech Mono', monospace;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* 背景暗色網格特效 */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        linear-gradient(rgba(13,17,23,0.92), rgba(13,17,23,0.92)),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+[data-view] {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ===== 頁尾 ===== */
+footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    letter-spacing: 1px;
+}
+/* 有浮動日期按鈕的頁面：頁尾下方預留按鈕高度，捲到底不被遮住 */
+body:has(.float-menu) footer { padding-bottom: 5.5rem; }

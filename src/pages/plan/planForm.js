@@ -89,6 +89,7 @@ export function fillForm(form, plan) {
     form.costMinFee.value = p.costs.minFee;
     form.costDisabled.checked = !p.costs.enabled;
     syncCosts(form);
+    form.cashRate.value = +(p.cashRate * 100).toFixed(2);
 }
 
 // 表單欄位 → { plan } 或 { error, field }（field 為出錯欄位 name，供頁籤標紅）
@@ -116,6 +117,9 @@ export function readForm(form) {
     if (costsOn && !(discount >= 0.1 && discount <= 10)) return { error: '交易成本：折扣請填 0.1～10 折', field: 'costDiscount' };
     if (costsOn && !(Number.isInteger(minFee) && minFee >= 0)) return { error: '交易成本：最低手續費請填 0 以上的整數', field: 'costMinFee' };
 
+    const cashRate = num('cashRate');
+    if (!(cashRate >= 0 && cashRate <= 10)) return { error: '現金年利率請填 0～10%', field: 'cashRate' };
+
     const { flows, error, field } = readCashflows();
     if (error) return { error, field };
     if (initialCapital === 0 && !flows.some(f => f.amount > 0)) return { error: '初始資金為 0 時，至少需有一筆正的現金流', field: 'initialCapital' };
@@ -126,7 +130,8 @@ export function readForm(form) {
             cashflows: flows,
             purchase: { timing, inflowMode, threshold: (pThreshold || 20) / 100, day: pDay || 5, mode, amount: mode === 'fixed' ? pAmount : 0 },
             costs: costsOn ? { enabled: true, discount: discount / 10, minFee } : { enabled: false },
-            rebalance: { mode: rMode, period: rPeriod, month: rMonth || 1, day: rDay || 5, threshold: (rThreshold || 20) / 100 }
+            rebalance: { mode: rMode, period: rPeriod, month: rMonth || 1, day: rDay || 5, threshold: (rThreshold || 20) / 100 },
+            cashRate: cashRate / 100
         })
     };
 }

@@ -24,7 +24,7 @@ function weekdays(price = () => 10, endYear = 2001) {
 }
 
 const NO_COST = { enabled: false };
-const plan = over => ({ years: 1, stockRatio: 1, cashflows: [], purchase: { timing: 'none' }, rebalance: { mode: 'none' }, costs: NO_COST, ...over });
+const plan = over => ({ years: 1, stockRatio: 1, cashflows: [], purchase: { timing: 'none' }, rebalance: { mode: 'none' }, costs: NO_COST, cashRate: 0, ...over });
 
 describe('calendar', () => {
     it('當月無該日取月底', () => {
@@ -95,6 +95,25 @@ describe('simulatePlan', () => {
         expect(r.daily[0]).toMatchObject({ shares: 33, cash: 1 });
         expect(r.final).toBeCloseTo(100);
         expect(r.xirr).toBeCloseTo(0, 6);
+    });
+
+    it('交易紀錄標示來源（initial / inflow / purchase / shortfall），供年度明細 Modal 分類', () => {
+        const r1 = simulatePlan(weekdays(() => 3), 0, plan({ initialCapital: 100 }));
+        expect(r1.trades[0]).toMatchObject({ type: 'buy', reason: 'initial' });
+
+        const r2 = simulatePlan(weekdays(), 0, plan({
+            initialCapital: 0, cashflows: [{ amount: 100, day: 5 }], purchase: { timing: 'inflow', inflowMode: 'amount' }
+        }));
+        expect(r2.trades.find(t => t.type === 'buy')).toMatchObject({ reason: 'inflow' });
+
+        const r3 = simulatePlan(weekdays(), 0, plan({
+            initialCapital: 1000, stockRatio: 0.5,
+            cashflows: [{ amount: 100, day: 5 }], purchase: { timing: 'monthly', day: 5, mode: 'all' }
+        }));
+        expect(r3.trades.find(t => t.reason === 'purchase')).toBeTruthy();
+
+        const r4 = simulatePlan(weekdays(), 0, plan({ initialCapital: 100, cashflows: [{ amount: -30, day: 5 }] }));
+        expect(r4.trades.find(t => t.reason === 'shortfall')).toBeTruthy();
     });
 
     it('設定日遇假日延至下一個交易日', () => {
@@ -175,6 +194,13 @@ describe('simulatePlan', () => {
         expect(r.mddPeriod).toEqual({ peak: '2000-02-01', trough: '2000-03-01', peakValue: 2000, troughValue: 500 });
     });
 
+    it('現金利息：按與上一交易日相隔天數比例計息', () => {
+        const r = simulatePlan(weekdays(), 0, plan({ initialCapital: 365_000, stockRatio: 0, cashRate: 0.1 }));
+        expect(r.daily[0].cash).toBe(365_000); // 第一天尚無前一交易日，不計息
+        expect(r.daily[1].date).toBe('2000-01-04'); // 與第一天相隔 1 個日曆天
+        expect(r.daily[1].cash).toBeCloseTo(365_100); // 365000 × 10% × 1/365 = 100
+    });
+
     it('資料不足 years 年回傳 null', () => {
         expect(simulatePlan(weekdays(), 0, plan({ years: 3 }))).toBeNull();
     });
@@ -201,6 +227,7 @@ describe('rebalance', () => {
             initialCapital: 1000, stockRatio: 0.5, rebalance: { mode: 'threshold', threshold: 0.2 }
         }));
         expect(r.daily[1]).toMatchObject({ shares: 45, cash: 565 }); // 股 650 / 現 500 → 賣 5 股
+        expect(r.trades.find(t => t.date === '2000-01-04')).toMatchObject({ type: 'sell', reason: 'rebalance' });
     });
 
     it('定期（每年指定月）再平衡', () => {

@@ -1,0 +1,219 @@
+/* ===== 導覽列 ===== */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(26, 31, 44, 0.85);
+    padding: 15px 40px;
+    border-bottom: 1px solid rgba(0, 210, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.15);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.2rem;
+    color: var(--neon-blue);
+    text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
+    letter-spacing: 2px;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.menu {
+    display: flex;
+    list-style: none;
+    gap: 24px;
+    align-items: center;
+}
+
+.menu-item {
+    position: relative;
+}
+
+.menu-item > a {
+    display: block;
+    padding: 6px 14px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.82rem;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.menu-item > a:hover,
+.menu-item > a.active { color: var(--text-primary); }
+
+/* hover 光暈：文字後方柔和電光藍光團 */
+.menu-item > a { position: relative; isolation: isolate; }
+.menu-item > a::before {
+    content: "";
+    position: absolute;
+    inset: -3px 12px;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0, 210, 255, 0.75), rgba(0, 210, 255, 0.25) 55%, transparent);
+    filter: blur(6px);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+}
+.menu-item > a:hover::before { opacity: 1; transform: scale(1); }
+
+/* 自動收合（navCollapse.js：放不下時 nav 加 .nav-collapsed，展開再加 .menu-open） */
+.nav-toggle {
+    display: none;
+    padding: 6px;
+    line-height: 0;
+    background: none;
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 6px;
+    color: var(--neon-blue);
+    cursor: pointer;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.nav-toggle:hover,
+nav.menu-open .nav-toggle { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 210, 255, 0.4); }
+nav.nav-collapsed .nav-toggle { display: block; }
+/* ☰ ↔ ✕ 變形：上下線移到中線後旋轉，中線收縮消失；展開時圖示帶電光藍光暈 */
+.nav-toggle svg { transition: filter 0.3s; }
+.nav-toggle path {
+    transform-origin: 12px 12px;
+    transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.2s;
+}
+nav.menu-open .nav-toggle svg { filter: drop-shadow(0 0 4px rgba(0, 210, 255, 0.8)); }
+nav.menu-open .nav-toggle .bar-top { transform: rotate(45deg) translateY(5px); }
+nav.menu-open .nav-toggle .bar-mid { transform: scaleX(0); opacity: 0; }
+nav.menu-open .nav-toggle .bar-bot { transform: rotate(-45deg) translateY(-5px); }
+nav.nav-collapsed .menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px 0;
+    background: rgba(26, 31, 44, 0.97);
+    border-bottom: 1px solid rgba(0, 210, 255, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+nav.nav-collapsed.menu-open .menu { display: flex; animation: menu-drop 0.2s ease-out; }
+nav.nav-collapsed .menu-item > a { padding: 14px 24px; font-size: 0.95rem; }
+nav.nav-collapsed .nav-indicator { display: none; }
+/* 目前頁：左側光條（同電腦版底線：項目高 50%、淡光暈 0.3）；光團同電腦版僅 hover 出現 */
+nav.nav-collapsed .menu-item > a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 25%;
+    bottom: 25%;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--neon-blue);
+    box-shadow: 0 0 6px rgba(0, 210, 255, 0.3);
+    opacity: 0;
+    transform: scaleY(0);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+}
+nav.nav-collapsed .menu-item > a::before {
+    inset: 0 45% 0 0;
+    border-radius: 0 50% 50% 0;
+    background: radial-gradient(ellipse at left center, rgba(0, 210, 255, 0.3), rgba(0, 210, 255, 0.08) 55%, transparent 75%);
+    filter: blur(4px);
+    transform-origin: left center;
+}
+nav.nav-collapsed .menu-item > a.active::after { opacity: 1; transform: none; }
+/* 點擊回饋（手機無 hover）：光團由小放大亮起，navCollapse.js 播完再收起選單 */
+nav.nav-collapsed .menu-item > a.tapped::before { animation: menu-tap 0.26s ease-out forwards; }
+@keyframes menu-tap {
+    0%   { opacity: 0; transform: scale(0.6); }
+    60%  { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes menu-drop { from { opacity: 0; transform: translateY(-6px); } }
+/* 展開掃入：項目依序（--i 由 navCollapse.js 設定）從左滑入；面板頂端白熱光線由左掃到右 */
+nav.nav-collapsed .menu { overflow: hidden; }
+nav.nav-collapsed.menu-open .menu-item { animation: menu-item-in 0.3s ease-out both; animation-delay: calc(var(--i, 0) * 40ms + 60ms); }
+nav.nav-collapsed.menu-open .menu::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 90px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 210, 255, 0.8), #FFFFFF);
+    box-shadow: 0 0 8px rgba(0, 210, 255, 0.9);
+    pointer-events: none;
+    animation: menu-scan 0.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@keyframes menu-item-in { from { opacity: 0; transform: translateX(-24px); } }
+@keyframes menu-scan { from { left: -90px; opacity: 1; } 80% { opacity: 1; } to { left: 100%; opacity: 0; } }
+
+/* 目前頁底線（navIndicator.js 定位） */
+.menu { position: relative; }
+.nav-indicator {
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--neon-blue);
+    box-shadow: 0 0 6px rgba(0, 210, 255, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), width 0.5s, box-shadow 0.3s;
+}
+.nav-indicator.no-anim { transition: none; }
+
+/* 滑動中：反方向拖出漸層尾巴 */
+.nav-indicator::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: 100%;
+    width: var(--trail, 0);
+    height: 4px;
+    border-radius: 4px;
+    background: linear-gradient(to right, transparent, rgba(0, 210, 255, 0.9));
+    filter: blur(1.5px) drop-shadow(0 0 6px #00D2FF);
+    opacity: 0;
+    transition: opacity 0.35s;
+}
+.nav-indicator.to-left::before {
+    right: auto;
+    left: 100%;
+    background: linear-gradient(to left, transparent, rgba(0, 210, 255, 0.9));
+}
+.nav-indicator.moving::before { opacity: 1; transition: opacity 0.05s; }
+
+/* 滑動中：底線變白熱光點 */
+.nav-indicator.moving {
+    background: linear-gradient(90deg, #7FE9FF, #FFFFFF 70%, #E6FBFF);
+    box-shadow: 0 0 6px #FFFFFF, 0 0 14px #00D2FF, 0 0 28px rgba(0, 210, 255, 0.7);
+}
+.nav-indicator.moving.to-left { background: linear-gradient(270deg, #7FE9FF, #FFFFFF 70%, #E6FBFF); }
+
+/* 尾巴上的閃爍電弧（navIndicator.js 每幀重畫） */
+.nav-spark {
+    position: absolute;
+    top: -5px;
+    right: 100%;
+    width: var(--trail, 0);
+    height: 12px;
+    overflow: visible;
+    opacity: 0;
+    transition: opacity 0.35s;
+    filter: drop-shadow(0 0 3px #00D2FF);
+}
+.nav-indicator.to-left .nav-spark { right: auto; left: 100%; transform: scaleX(-1); }
+.nav-indicator.moving .nav-spark { opacity: 1; transition: opacity 0.05s; }
+.nav-spark polyline { fill: none; stroke: rgba(220, 250, 255, 0.85); stroke-width: 0.8; vector-effect: non-scaling-stroke; }
+.nav-spark polyline + polyline { stroke: rgba(0, 210, 255, 0.7); }

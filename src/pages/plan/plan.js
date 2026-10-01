@@ -5,7 +5,7 @@
  */
 
 import { fetchBacktestData } from '../../core/database.js';
-import { DEFAULT_PLAN } from '../../core/plan/defaults.js';
+import { DEFAULT_PLAN, normalizePlan } from '../../core/plan/defaults.js';
 import { AI_CUTOFF } from '../../core/marketDates.js';
 import { toSeries, simulatePlan, simulateRolling } from '../../core/plan/simulate.js';
 import { fillForm, readForm, syncPurchase, syncRebalance, syncCosts } from './planForm.js';
@@ -16,6 +16,8 @@ import { renderRolling, renderCompare } from './rollingPanel.js';
 import { renderDetail, initDetailPanel } from './detailPanel.js';
 import { savePlan, loadPlan, clearPlan } from './planStorage.js';
 import { initAnchors, refreshAnchors, scrollToSection } from './planAnchors.js';
+import { consumeSharedPlan, sharePlan } from './shareLink.js';
+import { initPresets, clearPresetActive } from './planPresets.js';
 
 const $ = id => document.getElementById(id);
 
@@ -37,7 +39,7 @@ function seriesOf(target, end = null) {
 }
 let dataEnd = null; // 資料截止：null 最新 | AI_CUTOFF（檢視方式，不存入參數）
 let currentPlan = DEFAULT_PLAN;
-// 結果來源：'default' 預設範例 | 'saved' 上次保存 | 'user' 本次使用者按下模擬（不顯示提示）
+// 結果來源：'default' 預設範例 | 'saved' 上次保存 | 'shared' 分享連結帶入 | 'user' 本次使用者按下模擬（不顯示提示）
 let source = null, savedAt = null;
 
 const fmtTime = iso => {
@@ -47,10 +49,21 @@ const fmtTime = iso => {
 
 function renderBanner() {
     $('plan-banner').hidden = source === 'user';
-    $('plan-reset').hidden = source !== 'saved';
+    $('plan-reset').hidden = source === 'default' || source === 'user';
     $('plan-banner-text').textContent = source === 'saved'
         ? `已載入您上次的參數（${fmtTime(savedAt)}），調整後按「開始模擬」重新計算。`
+        : source === 'shared'
+        ? '已載入朋友分享的計畫參數，調整後按「開始模擬」重新計算。'
         : '以下為預設參數（首頁 50/50 策略＋每月 1 萬）的範例結果，請調整參數後按「開始模擬」。'; // 文字對應 DEFAULT_PLAN
+}
+
+let shareFeedbackTimer;
+function showShareFeedback(text) {
+    clearTimeout(shareFeedbackTimer);
+    const el = $('plan-share-feedback');
+    el.textContent = text;
+    el.hidden = false;
+    shareFeedbackTimer = setTimeout(() => { el.hidden = true; }, 1800);
 }
 
 function showError(msg) {
@@ -59,7 +72,7 @@ function showError(msg) {
 }
 
 function showDetail(startIdx, scroll) {
-    renderDetail(simulatePlan(seriesOf(currentPlan.target, dataEnd), startIdx, currentPlan), currentPlan.years);
+    renderDetail(simulatePlan(seriesOf(currentPlan.target, dataEnd), startIdx, currentPlan), currentPlan.years, currentPlan.cashRate);
     if (scroll) scrollToSection('plan-detail');
 }
 
@@ -72,8 +85,7 @@ function run({ save = false } = {}) {
     if (!compute(plan)) return;
     if (save) { savePlan(plan); source = 'user'; }
     renderBanner();
-    // 窄螢幕（上下排列）按下模擬後捲到結果；寬螢幕結果本就在右側
-    if (save && !window.matchMedia('(min-width: 1100px)').matches) scrollToSection('plan-rolling');
+    if (save) scrollToSection('plan-rolling'); // 每次按「開始模擬」都捲回結果頂端（電腦 / 手機皆同）
 }
 
 // 0050 對照：沿用現金流與交易成本，改為 100% 投入、每筆入帳當天全數買進（零頭留現金）、不再平衡
@@ -124,10 +136,16 @@ function bindDataEnd() {
 export async function initPlan() {
     const form = $('plan-form');
     if (!form) return;
-    if (!source) { // 本次瀏覽首次進入：有保存就載入
-        const saved = loadPlan();
-        if (saved) ({ plan: currentPlan, savedAt } = saved);
-        source = saved ? 'saved' : 'default';
+    if (!source) { // 本次瀏覽首次進入：分享連結優先，其次有保存就載入
+        const shared = await consumeSharedPlan();
+        if (shared) {
+            currentPlan = normalizePlan(shared);
+            source = 'shared';
+        } else {
+            const saved = loadPlan();
+            if (saved) ({ plan: currentPlan, savedAt } = saved);
+            source = saved ? 'saved' : 'default';
+        }
     }
     initCashflowList($('cf-list'));
     bindMoneyInputs(form);
@@ -136,20 +154,40 @@ export async function initPlan() {
     fillForm(form, currentPlan);
     updateStatus();
     // 子欄位、說明與提示依多頁欄位而定（股票比例、定期購買、再平衡），任一欄位變動即更新
-    const sync = () => { syncPurchase(form); syncRebalance(form); syncCosts(form); };
+    const presetsEl = $('plan-presets');
+    const sync = () => { syncPurchase(form); syncRebalance(form); syncCosts(form); clearPresetActive(presetsEl); };
     form.addEventListener('change', sync);
     form.addEventListener('input', sync);
     form.addEventListener('submit', e => { e.preventDefault(); run({ save: true }); });
     bindDataEnd();
     initDetailPanel();
     initAnchors();
+    initPresets(presetsEl, plan => {
+        if (!rows) return; // 資料尚未載入
+        fillForm(form, plan);
+        updateStatus();
+        syncPurchase(form); syncRebalance(form); syncCosts(form);
+        clearErrors();
+        if (compute(normalizePlan(plan))) {
+            source = 'user'; // 套用情境視同使用者操作，不顯示來源提示
+            renderBanner();
+            scrollToSection('plan-rolling'); // 每次套用情境都捲回結果頂端
+        }
+    });
+    $('plan-share').addEventListener('click', async () => {
+        const { status, url } = await sharePlan(currentPlan);
+        if (status === 'copied') showShareFeedback('已複製連結');
+        else if (status === 'manual') prompt('複製此連結分享：', url);
+    });
     $('plan-reset').addEventListener('click', () => {
         clearPlan();
         currentPlan = DEFAULT_PLAN;
         source = 'default';
         fillForm(form, currentPlan);
         updateStatus();
+        clearPresetActive(presetsEl);
         run();
+        scrollToSection('plan-rolling'); // 每次重新計算都捲回結果頂端
     });
     rows ??= await fetchBacktestData('2000-01-01', '9999-12-31');
     run();

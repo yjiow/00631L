@@ -23,6 +23,9 @@ export function lowerBound(dates, date) {
 
 export const addYears = (date, years) => (+date.slice(0, 4) + years) + date.slice(4);
 
+// 兩個 'YYYY-MM-DD' 相差的日曆天數（供現金利息按實際天數計息）
+export const daysBetween = (a, b) => (Date.parse(b) - Date.parse(a)) / 864e5;
+
 // 自 startDate 所在月份起連續 count 個月：[{ y, m, year }]（year = 第幾年，1 起算）
 export function monthsFrom(startDate, count) {
     const [sy, sm] = startDate.split('-').map(Number);

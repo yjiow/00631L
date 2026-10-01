@@ -7,7 +7,7 @@
 import { formatMoney, parseMoney } from '../../ui/moneyInput.js';
 
 const PERIODS = { monthly: '每月', yearly: '每年', once: '單次' };
-const MAX_ROWS = 10;
+const MAX_ROWS = 15;
 
 const ROW_HTML = `
     <label class="plan-field cf-name"><span>名稱</span><input type="text" data-f="name" maxlength="20" placeholder="例：薪水"></label>

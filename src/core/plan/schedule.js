@@ -21,7 +21,7 @@ function flowActive(f, mo, years) {
 function cashflowRule(ctx, at) {
     for (const mo of ctx.months) {
         for (const f of ctx.plan.cashflows) {
-            if (flowActive(f, mo, ctx.plan.years)) at(mo, f.day, { kind: 'flow', amount: f.amount });
+            if (flowActive(f, mo, ctx.plan.years)) at(mo, f.day, { kind: 'flow', amount: f.amount, name: f.name });
         }
     }
 }

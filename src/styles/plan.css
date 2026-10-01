@@ -2,6 +2,28 @@
 #plan-results > .panel-card,
 .plan-params { margin-bottom: 24px; }
 
+.plan-share-feedback { margin-left: 8px; font-size: 0.78rem; font-family: var(--font-num); color: var(--neon-blue); vertical-align: middle; }
+
+.plan-presets { margin-bottom: 20px; }
+.plan-presets-hint { margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); }
+.plan-presets-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.plan-preset-btn {
+    flex: 1 1 0;
+    min-width: fit-content;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.plan-preset-btn:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+.plan-preset-btn.active { border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0, 210, 255, 0.1); }
+.plan-presets-desc { margin-top: 8px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+
 .plan-form {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -223,6 +245,7 @@
 /* 左右捲動時年度欄固定 */
 .yearly-table thead th:first-child, .yearly-table tbody th { position: sticky; left: 0; z-index: 1; background: var(--bg-card); }
 .yearly-table tbody tr:hover { background: rgba(0, 210, 255, 0.04); }
+.yearly-row { cursor: pointer; }
 .yearly-range { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text-faint); font-family: var(--font-num); font-weight: 400; }
 .yearly-toggle {
     display: block;
@@ -238,6 +261,22 @@
 }
 .yearly-toggle[hidden] { display: none; }
 .yearly-toggle:hover { background: rgba(0, 210, 255, 0.06); }
+
+/* 年度明細 Modal：逐筆現金流與買賣（依時間排序） */
+.yearly-modal-scroll { overflow-x: auto; max-height: 60vh; }
+.yearly-modal-table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 0.82rem; }
+.yearly-modal-table th, .yearly-modal-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); white-space: nowrap; vertical-align: middle; }
+.yearly-modal-table thead th { position: sticky; top: 0; background: var(--bg-card); color: var(--text-secondary); font-weight: 500; text-align: left; border-bottom-color: rgba(255, 255, 255, 0.12); }
+.yearly-modal-table thead th:nth-child(n+4) { text-align: right; }
+.yearly-modal-table td { color: var(--text-secondary); }
+.yearly-modal-date, .yearly-modal-num { font-family: var(--font-num); }
+.yearly-modal-num { text-align: right; }
+.yearly-modal-table td.positive { color: var(--color-up); }
+.yearly-modal-table td.negative { color: var(--color-down); }
+.yearly-modal-table tbody tr.yearly-modal-odd { background: rgba(255, 255, 255, 0.05); }
+.yearly-modal-empty { text-align: center; color: var(--text-faint); }
+.yearly-modal-note { margin-top: 10px; font-size: 0.75rem; color: var(--text-faint); line-height: 1.6; }
+.yearly-modal-sub { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text-faint); }
 
 /* 頁籤 */
 .plan-tabs { display: flex; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 22px; }

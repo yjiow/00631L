@@ -25,10 +25,10 @@ export function triggerRange(ratio, threshold) {
 export const topUpBudget = (account, price, ratio) => Math.max(0, account.value(price) * ratio - account.shares * price);
 
 // 調回目標比例：股票過多賣出、不足以現金買進（整數股、含交易成本）
-export function rebalanceTo(account, price, ratio) {
+export function rebalanceTo(account, price, ratio, reason = 'rebalance') {
     if (!canRebalance(ratio)) return;
     const target = account.value(price) * ratio;
     const stock = account.shares * price;
-    if (stock > target) account.sell(price, Math.floor((stock - target) / price));
-    else account.buy(price, target - stock);
+    if (stock > target) account.sell(price, Math.floor((stock - target) / price), reason);
+    else account.buy(price, target - stock, reason);
 }

@@ -5,6 +5,7 @@
 
 import { renderRollingChart } from '../../charts/planCharts.js';
 import { fmtMoney, fmtRate, ym, signClass } from './planFormat.js';
+import { daysBetween } from '../../core/plan/calendar.js';
 
 const $ = id => document.getElementById(id);
 
@@ -68,7 +69,13 @@ export function renderCompare(items) {
 // rs：simulateRolling 結果；years：模擬年數；dataEnd：資料截止日；handler(startIdx)：選中起點時呼叫；預設選中位數
 export function renderRolling(rs, years, dataEnd, handler) {
     results = rs;
-    byValue = [...rs].sort((a, b) => a.final - b.final);
+    // 依結果排序：期末資產優先；相同時（常見於資金斷鏈皆為 0）以撐過的天數為次要依據，讓斷鏈快慢排得出順序；
+    // 連撐過天數都相同，再以投入金額排序（投入越多、結果一樣差，排名視為越差）
+    byValue = [...rs].sort((a, b) =>
+        a.final - b.final ||
+        daysBetween(a.startDate, a.endDate) - daysBetween(b.startDate, b.endDate) ||
+        b.invested - a.invested
+    );
     onSelect = handler;
     bindControls();
 

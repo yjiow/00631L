@@ -89,6 +89,7 @@ export function initRouter() {
         }
     });
 
-    // 預設載入首頁
-    navigateTo('home');
+    // 分享連結帶 ?view=plan 時直接開啟該頁（plan.js 另讀網址參數帶入計畫），其餘預設首頁
+    const view = new URLSearchParams(location.search).get('view');
+    navigateTo(view === 'plan' ? 'plan' : 'home');
 }

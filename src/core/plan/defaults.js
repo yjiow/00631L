@@ -22,7 +22,8 @@ export const DEFAULT_PLAN = {
     // mode：'none' 不再平衡 | 'periodic' 定期（period：'monthly' | 'quarterly' 1/4/7/10 月 | 'yearly' month 月；day 日）| 'threshold' 漲跌幅門檻
     rebalance: { mode: 'threshold', period: 'yearly', month: 1, day: 5, threshold: 0.2 },
     // 手續費折扣、最低手續費；費率與稅率為系統參數（fees.js）
-    costs: { enabled: true, discount: 0.6, minFee: 1 }
+    costs: { enabled: true, discount: 0.6, minFee: 1 },
+    cashRate: 0.01 // 現金年利率（固定，不反映歷史升降息），預設 1%；存款利息課稅暫不計
 };
 
 export function normalizePlan(plan = {}) {

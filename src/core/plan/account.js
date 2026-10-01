@@ -21,8 +21,8 @@ export class Account {
         return this.cash + this.shares * price;
     }
 
-    // 以 budget 為上限買進最大整數股（含手續費），回傳股數
-    buy(price, budget) {
+    // 以 budget 為上限買進最大整數股（含手續費），回傳股數；reason 供畫面標示交易來源（如 rebalance / purchase / inflow）
+    buy(price, budget, reason = null) {
         budget = Math.min(budget, this.cash);
         const spend = n => n * price + tradeCost(n * price, 'buy', this.costs);
         let n = Math.floor(budget / price);
@@ -32,19 +32,19 @@ export class Account {
         this.shares += n;
         this.cash -= n * price + cost;
         this.costTotal += cost;
-        this.onTrade?.('buy', { amount: n * price, shares: n, cost });
+        this.onTrade?.('buy', { amount: n * price, shares: n, cost, reason });
         return n;
     }
 
-    // 賣出 n 股，回傳實收金額
-    sell(price, n) {
+    // 賣出 n 股，回傳實收金額；reason 同 buy()
+    sell(price, n, reason = null) {
         n = Math.min(n, this.shares);
         if (n <= 0) return 0;
         const cost = tradeCost(n * price, 'sell', this.costs);
         this.shares -= n;
         this.cash += n * price - cost;
         this.costTotal += cost;
-        this.onTrade?.('sell', { amount: n * price, shares: n, cost });
+        this.onTrade?.('sell', { amount: n * price, shares: n, cost, reason });
         return n * price - cost;
     }
 
@@ -55,7 +55,7 @@ export class Account {
         const net = n => n * price - tradeCost(n * price, 'sell', this.costs);
         let n = Math.min(this.shares, Math.ceil(need / price));
         while (n < this.shares && net(n) < need - EPS) n++;
-        this.sell(price, n);
+        this.sell(price, n, 'shortfall');
         return this.cash >= -EPS;
     }
 }

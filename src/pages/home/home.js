@@ -9,6 +9,7 @@ import { calcBuyHold, calc5050, findMDDPeriod } from '../../core/calculator.js';
 import { renderBacktestChart, render5050DetailChart } from '../../charts/chartRender.js';
 import { renderWinRate } from './winRatePanel.js';
 import { initFloatAutoHide } from '../../ui/floatAutoHide.js';
+import { initHomeShare } from './homeShare.js';
 import { AI_CUTOFF } from '../../core/marketDates.js';
 
 let currentStartDate = null;
@@ -189,6 +190,7 @@ export function initBacktest() {
     const trigger = document.querySelector('.float-trigger');
     if (!panel || !trigger) return;
     initFloatAutoHide();
+    initHomeShare();
 
     const togglePanel = open => { panel.style.display = open ? 'block' : 'none'; };
     trigger.addEventListener('click', () => togglePanel(panel.style.display === 'none'));
