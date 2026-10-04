@@ -2,6 +2,7 @@
  * plan/simulate.js
  * 投資計畫模擬（純計算，不操作 DOM）
  * 流程：排程展開（schedule.js）→ 逐日執行動作（HANDLERS）→ 每日檢查（漲跌幅再平衡）→ 記錄每日資產
+ * 每日檢查含大跌加碼（dipBuy.js）與漲跌幅再平衡
  * 規則：動作於設定日當天或之後第一個交易日執行，皆用當日收盤價；現金不足即賣股補足，持股也不足為資金斷鏈（模擬停止、期末資產 0）
  */
 
@@ -10,7 +11,8 @@ import { lowerBound, addYears, daysBetween } from './calendar.js';
 import { buildSchedule } from './schedule.js';
 import { Account } from './account.js';
 import { xirr } from './xirr.js';
-import { canRebalance, drifted, rebalanceTo, topUpBudget } from './rebalance.js';
+import { DipBuy } from './dipBuy.js';
+import { canRebalance, drifted, rebalanceTo, allocateTo, topUpBudget } from './rebalance.js';
 
 // database rows → { dates, prices }（略過 null）
 export function toSeries(rows, field) {
@@ -21,7 +23,7 @@ export function toSeries(rows, field) {
 // 入帳當天買進（股票比例 0 / 100% 時「達門檻才買」同「依股票比例」）
 function buyOnInflow(s, amount, price) {
     const { inflowMode, threshold } = s.plan.purchase;
-    const { account } = s, ratio = s.plan.stockRatio;
+    const { account } = s, ratio = s.ratio;
     if (inflowMode === 'amount') return account.buy(price, amount, 'inflow');
     if (inflowMode === 'threshold' && canRebalance(ratio) &&
         !drifted(account.shares * price, account.cash, ratio, threshold)) return 0;
@@ -29,6 +31,12 @@ function buyOnInflow(s, amount, price) {
 }
 
 // 各動作的執行方式；回傳 false 表示資金斷鏈
+// 再平衡：大跌加碼輪期間只買不賣（股票低於目標時以現金買進，高於目標不賣，留給收回規則）
+function rebalanceOrTopUp(s, price) {
+    if (!s.dip?.active) return rebalanceTo(s.account, price, s.ratio);
+    if (canRebalance(s.ratio)) s.account.buy(price, topUpBudget(s.account, price, s.ratio), 'rebalance');
+}
+
 const HANDLERS = {
     flow(s, act, price) {
         s.account.cash += act.amount;
@@ -45,7 +53,12 @@ const HANDLERS = {
         return true;
     },
     rebalance(s, act, price) {
-        rebalanceTo(s.account, price, s.plan.stockRatio);
+        rebalanceOrTopUp(s, price);
+        return true;
+    },
+    stage(s, act, price) {
+        s.ratio = act.ratio;
+        allocateTo(s.account, price, s.ratio, 'stage');
         return true;
     }
 };
@@ -60,17 +73,18 @@ export function simulatePlan(series, startIdx, plan, { detail = true } = {}) {
 
     const daily = [], trades = [];
     const s = {
-        plan: p, date: dates[startIdx], invested: p.initialCapital,
+        plan: p, ratio: p.stockRatio, date: dates[startIdx], invested: p.initialCapital,
         cashflows: [{ date: dates[startIdx], amount: -p.initialCapital }], // 投資人角度，供 XIRR
         log: (type, t) => detail && trades.push({ date: s.date, type, ...t })
     };
+    s.dip = p.dipBuy.enabled ? new DipBuy(p.dipBuy, prices) : null;
     s.account = new Account(p.initialCapital, p.costs, s.log);
     s.account.buy(prices[startIdx], p.initialCapital * p.stockRatio, 'initial');
 
     const acts = buildSchedule(dates, startIdx, endIdx, p);
     let peak = 0, mdd = 0, value = 0, brokeDate = null, a = 0;
     let peakDate = null, mddPeriod = null; // 最大回撤的高點 / 低點日期與資產
-    const { rebalance, stockRatio } = p;
+    const { rebalance } = p;
     const checkDrift = rebalance.mode === 'threshold';
 
     for (let i = startIdx; i <= endIdx && !brokeDate; i++) {
@@ -81,9 +95,10 @@ export function simulatePlan(series, startIdx, plan, { detail = true } = {}) {
             const act = acts[a++];
             if (!HANDLERS[act.kind](s, act, prices[i])) { brokeDate = dates[i]; break; }
         }
-        // 每日檢查：漲跌幅再平衡（當日動作執行後、收盤價）
-        if (checkDrift && !brokeDate && drifted(s.account.shares * prices[i], s.account.cash, stockRatio, rebalance.threshold)) {
-            rebalanceTo(s.account, prices[i], stockRatio);
+        // 每日檢查：大跌加碼 / 收回，其後漲跌幅再平衡（當日動作執行後、收盤價；加碼輪期間再平衡只買不賣）
+        if (s.dip && !brokeDate) s.dip.step(s.account, prices[i], i, i === 0 || dates[i].slice(0, 7) !== dates[i - 1].slice(0, 7), s.ratio);
+        if (checkDrift && !brokeDate && drifted(s.account.shares * prices[i], s.account.cash, s.ratio, rebalance.threshold)) {
+            rebalanceOrTopUp(s, prices[i]);
         }
         value = brokeDate ? 0 : s.account.value(prices[i]);
         if (value > peak) { peak = value; peakDate = dates[i]; }

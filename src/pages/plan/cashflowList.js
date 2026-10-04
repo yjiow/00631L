@@ -17,6 +17,7 @@ const ROW_HTML = `
     <label class="plan-field"><span>日</span><input type="number" data-f="day" min="1" max="31"></label>
     <label class="plan-field"><span class="cf-from-label" data-short="起">第幾年起</span><input type="number" data-f="fromYear" min="1"></label>
     <label class="plan-field cf-to"><span data-short="迄">至第幾年</span><input type="number" data-f="toYear" min="1" placeholder="期末"></label>
+    <label class="cf-infl"><input type="checkbox" data-f="inflation"><span>隨通膨調整</span></label>
     <button type="button" class="cf-del" title="刪除此列" aria-label="刪除此列">✕</button>`;
 
 let list = null;
@@ -37,6 +38,7 @@ function syncRow(row) {
     const from = row.querySelector('.cf-from-label');
     from.textContent = period === 'once' ? '第幾年' : '第幾年起';
     from.dataset.short = period === 'once' ? '年' : '起'; // 手機版短標籤
+    row.querySelector('.cf-infl').hidden = period === 'once'; // 單次不調整
 }
 
 function renumber() {
@@ -51,6 +53,7 @@ function addRow(f) {
     row.className = 'cf-row';
     row.innerHTML = ROW_HTML; // 固定模板，使用者資料一律以 value 寫入
     const set = (k, v) => { row.querySelector(`[data-f=${k}]`).value = v ?? ''; };
+    row.querySelector('[data-f=inflation]').checked = !!f.inflation;
     set('name', f.name); set('amount', formatMoney(f.amount)); set('period', f.period);
     set('month', f.month); set('day', f.day); set('fromYear', f.fromYear); set('toYear', f.toYear);
     syncRow(row);
@@ -74,7 +77,7 @@ export function initCashflowList(container) {
     list.innerHTML = '<button type="button" class="cf-add">＋ 新增現金流</button>';
     list.addEventListener('click', e => {
         if (e.target.closest('.cf-add')) {
-            const row = addRow({ name: '', amount: '', period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null });
+            const row = addRow({ name: '', amount: '', period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null, inflation: true });
             revealRow(row);
             row.querySelector('[data-f=name]').focus({ preventScroll: true });
         } else if (e.target.closest('.cf-del')) {
@@ -118,7 +121,8 @@ export function readCashflows() {
         if (toYear != null && !(Number.isInteger(toYear) && toYear >= n('fromYear'))) return err('toYear', '至第幾年需為整數且不小於起始年');
         flows.push({
             name: v('name'), amount: n('amount'), period,
-            month: period === 'monthly' ? 1 : n('month'), day: n('day'), fromYear: n('fromYear'), toYear
+            month: period === 'monthly' ? 1 : n('month'), day: n('day'), fromYear: n('fromYear'), toYear,
+            inflation: period !== 'once' && row.querySelector('[data-f=inflation]').checked
         });
     }
     return { flows };

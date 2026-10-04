@@ -5,6 +5,7 @@
 
 import Chart from 'chart.js/auto';
 import { neonScales, glassTooltip, neonLine, downsampleIdx, periodLast } from './chartTheme.js';
+import { assetSeries } from './assetSeries.js';
 import { fmtMoney, ym } from '../pages/plan/planFormat.js';
 
 let rollingChart = null;
@@ -16,7 +17,8 @@ const COLOR = {
     selected: '#E6EDF3',
     broke: '#FF007F',
     median: 'rgba(227, 179, 65, 0.8)',
-    drawdown: '#34D399' // 跌：同 --color-down
+    drawdown: '#34D399', // 跌：同 --color-down
+    a: '#A78BFA'         // 對照組 A（同明細圖 A 線）
 };
 
 const wanTick = v => (v / 1e4).toLocaleString('en-US') + '萬';
@@ -29,14 +31,14 @@ function planScales(xFmt = null) {
     return sc;
 }
 
-// 中位數水平虛線
-const medianLine = value => ({
-    id: 'medianLine',
+// 中位數水平虛線（預設金色；對照組 A 另畫一條紫色，id 須不同）
+const medianLine = (value, color = COLOR.median, id = 'medianLine') => ({
+    id,
     afterDatasetsDraw(chart) {
         const { ctx, chartArea, scales } = chart;
         const y = scales.y.getPixelForValue(value);
         ctx.save();
-        ctx.strokeStyle = COLOR.median;
+        ctx.strokeStyle = color;
         ctx.setLineDash([6, 4]);
         ctx.beginPath();
         ctx.moveTo(chartArea.left, y);
@@ -58,7 +60,8 @@ function rankScales(n) {
 }
 
 // items：依顯示順序排列的滾動結果；byRank：依結果排序（X 軸標排名）；點擊回呼 onPick(startIdx)（取最近一根，手機易點）
-export function renderRollingChart(items, selectedIdx, median, onPick, byRank = false) {
+// a：釘住對照組 A 時的疊加資料 { line, median }（見 rollingA.js；未釘住為 null，圖與原本完全相同）
+export function renderRollingChart(items, selectedIdx, median, onPick, byRank = false, a = null) {
     const canvas = document.getElementById('chartRolling');
     if (!canvas) return;
     if (rollingChart) rollingChart.destroy();
@@ -74,7 +77,10 @@ export function renderRollingChart(items, selectedIdx, median, onPick, byRank = 
                 borderWidth: 0,
                 barPercentage: 1, categoryPercentage: 0.85,
                 minBarLength: 2 // 期末 0（斷鏈）仍看得到
-            }]
+            }, ...(a ? [{
+                type: 'line', label: 'A', data: a.line,
+                borderColor: COLOR.a, borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0, tension: 0, fill: false, spanGaps: false
+            }] : [])]
         },
         options: {
             responsive: true,
@@ -87,6 +93,7 @@ export function renderRollingChart(items, selectedIdx, median, onPick, byRank = 
             onHover(evt, _els, chart) {
                 evt.native.target.style.cursor = 'pointer';
             },
+            ...(a && { interaction: { mode: 'index', intersect: false } }), // 有 A 線時滑過同一欄即同時顯示 B、A
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -95,6 +102,7 @@ export function renderRollingChart(items, selectedIdx, median, onPick, byRank = 
                     callbacks: {
                         title: its => items[its[0].dataIndex].startDate.replace(/-/g, '/') + ' 起',
                         label: it => {
+                            if (it.datasetIndex === 1) return it.raw == null ? null : `A 期末資產 ${fmtMoney(it.raw)}`;
                             const r = items[it.dataIndex];
                             return r.brokeDate ? `資金斷鏈 ${r.brokeDate.replace(/-/g, '/')}` : `期末資產 ${fmtMoney(r.final)}`;
                         }
@@ -104,7 +112,7 @@ export function renderRollingChart(items, selectedIdx, median, onPick, byRank = 
             scales: byRank ? rankScales(items.length) : planScales(),
             layout: { padding: { right: byRank ? 14 : 0 } } // 右端「最好」標籤不被切掉
         },
-        plugins: [medianLine(median)]
+        plugins: [medianLine(median), ...(a ? [medianLine(a.median, COLOR.a, 'medianLineA')] : [])]
     });
 }
 
@@ -159,22 +167,22 @@ function mddMarker(m, pct, labels) {
 }
 
 // daily：simulatePlan 的每日資產；mddPeriod / mdd：最大回撤期間與幅度（無回撤時 mddPeriod 為 null）
-export function renderAssetChart(daily, mddPeriod = null, mdd = 0) {
+// dailyA：釘住的對照組 A 同起點每日資產（未釘住為 null；有值時多畫紫色細點線）
+export function renderAssetChart(daily, mddPeriod = null, mdd = 0, dailyA = null) {
     const canvas = document.getElementById('chartPlanAsset');
     if (!canvas) return;
     if (assetChart) assetChart.destroy();
 
-    let labels = daily.map(d => d.date), value = daily.map(d => d.value), invested = daily.map(d => d.invested);
-    const idx = downsampleIdx(labels.length, [value]);
-    if (idx) [labels, value, invested] = [labels, value, invested].map(arr => idx.map(i => arr[i]));
+    const { labels, value, invested, a } = assetSeries(daily, dailyA);
 
     assetChart = new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: {
             labels,
             datasets: [
-                neonLine('總資產', value, '#00D2FF'),
-                { ...neonLine('累計淨投入', invested, '#94A3B8'), borderDash: [5, 4], borderWidth: 1.5, tension: 0 }
+                neonLine(a ? '總資產（目前）' : '總資產', value, '#00D2FF'),
+                { ...neonLine('累計淨投入', invested, '#94A3B8'), borderDash: [5, 4], borderWidth: 1.5, tension: 0 },
+                ...(a ? [{ ...neonLine('A（對照組）', a, '#A78BFA'), borderDash: [2, 3], borderWidth: 1.5 }] : [])
             ]
         },
         options: {

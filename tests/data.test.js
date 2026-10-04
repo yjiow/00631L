@@ -1,6 +1,9 @@
 // public/data/*.json 資料檢查（npm test）：自動更新或重建後防止壞資料上線
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { normalizePlan } from '../src/core/plan/defaults.js';
+import { simulatePlan, toSeries } from '../src/core/plan/simulate.js';
+import { summarizePlan } from '../src/pages/plan/planCases.js';
 
 const load = code => JSON.parse(readFileSync(new URL(`../public/data/${code}.json`, import.meta.url)));
 
@@ -39,5 +42,28 @@ describe.each(Object.keys(LIMITS))('%s.json', code => {
             if (Math.abs(pct) > LIMITS[code]) bad.push(`${rows[i].date} ${(pct * 100).toFixed(2)}%`);
         }
         expect(bad).toEqual([]);
+    });
+});
+
+describe('cases.json', () => {
+    const cases = load('cases');
+    const rows = load('00631L').map(r => ({ ...r, t2_close: r.adjClose }));
+    const series = toSeries(rows, 't2_close');
+
+    it('必填欄位齊全、id 唯一', () => {
+        for (const c of cases) {
+            for (const k of ['id', 'title', 'author', 'desc']) expect(typeof c[k]).toBe('string');
+            for (const k of ['id', 'title', 'author', 'desc']) expect(c[k].length).toBeGreaterThan(0);
+            expect(typeof c.plan).toBe('object');
+        }
+        expect(new Set(cases.map(c => c.id)).size).toBe(cases.length);
+    });
+
+    it('每個 plan 可模擬、可產生摘要', () => {
+        for (const c of cases) {
+            const res = simulatePlan(series, 0, normalizePlan(c.plan));
+            expect(res, c.id).not.toBeNull();
+            expect(summarizePlan(c.plan)).toMatch(/^初始/);
+        }
     });
 });

@@ -1,6 +1,6 @@
 /**
  * planTabs.js
- * 參數頁籤：切換、下一步、手機「步驟 n/5」、頁籤狀態（✓ 已填寫 / 預設 / 錯誤標紅）
+ * 參數頁籤：切換、下一步、手機「步驟 n/6」、頁籤狀態（✓ 已填寫 / 預設 / 錯誤標紅）
  * ✓ = 已確認：按「下一步」離開該頁，或頁內欄位與預設值不同（含增刪列；預設狀態於 initTabs 時記錄）；只點頁籤瀏覽不算
  */
 
@@ -86,6 +86,7 @@ export function initTabs(formEl) {
         const step = Number(b.dataset.step);
         step > 0 ? next() : showTab(current + step, true);
     }));
+    form.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => showTab(Number(b.dataset.goto), true)));
     $('plan-next').addEventListener('click', next);
     form.addEventListener('input', e => { e.target.classList.remove('error'); updateStatus(); });
     showTab(0);

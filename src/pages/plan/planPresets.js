@@ -10,7 +10,7 @@ export const PRESETS = [
         desc: '您剛出社會，本金不多，但還有時間優勢：靠每月定額投入，讓複利慢慢滾大。',
         plan: {
             ...DEFAULT_PLAN, initialCapital: 30_000, stockRatio: 0.8, years: 20,
-            cashflows: [{ name: '每月提撥', amount: 3_000, period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null }]
+            cashflows: [{ name: '每月提撥', amount: 3_000, period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null, inflation: true }]
         }
     },
     {
@@ -19,17 +19,17 @@ export const PRESETS = [
         plan: {
             ...DEFAULT_PLAN, initialCapital: 1_000_000, stockRatio: 0.5, years: 20,
             cashflows: [
-                { name: '每月信貸還款', amount: -9_700, period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null },
-                { name: '2年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 2, toYear: null },
-                { name: '4年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 4, toYear: null },
-                { name: '6年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 6, toYear: null },
-                { name: '8年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 8, toYear: null },
-                { name: '10年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 10, toYear: null },
-                { name: '12年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 12, toYear: null },
-                { name: '14年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 14, toYear: null },
-                { name: '16年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 16, toYear: null },
-                { name: '18年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 18, toYear: null },
-                { name: '還款', amount: -830_000, period: 'once', month: 12, day: 5, fromYear: 20, toYear: null }
+                { name: '每月信貸還款', amount: -9_700, period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null, inflation: false },
+                { name: '2年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 2, toYear: null, inflation: false },
+                { name: '4年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 4, toYear: null, inflation: false },
+                { name: '6年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 6, toYear: null, inflation: false },
+                { name: '8年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 8, toYear: null, inflation: false },
+                { name: '10年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 10, toYear: null, inflation: false },
+                { name: '12年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 12, toYear: null, inflation: false },
+                { name: '14年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 14, toYear: null, inflation: false },
+                { name: '16年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 16, toYear: null, inflation: false },
+                { name: '18年增貸', amount: 170_000, period: 'once', month: 12, day: 31, fromYear: 18, toYear: null, inflation: false },
+                { name: '還款', amount: -830_000, period: 'once', month: 12, day: 5, fromYear: 20, toYear: null, inflation: false }
             ],
             purchase: { ...DEFAULT_PLAN.purchase, timing: 'none' }
         }
@@ -39,7 +39,7 @@ export const PRESETS = [
         desc: '您已退休、手上有一筆資產，但退休金不夠生活：每月從資產提領差額，看看這筆錢能撐多久、會不會提前用完。',
         plan: {
             ...DEFAULT_PLAN, initialCapital: 5_000_000, stockRatio: 0.5, years: 20,
-            cashflows: [{ name: '生活費提領', amount: -30_000, period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null }]
+            cashflows: [{ name: '生活費提領', amount: -30_000, period: 'monthly', month: 1, day: 5, fromYear: 1, toYear: null, inflation: true }]
         }
     }
 ];

@@ -35,7 +35,8 @@
 .plan-field span { font-size: 0.85rem; color: var(--text-secondary); }
 
 .plan-field input,
-.plan-field select {
+.plan-field select,
+.sr-row input {
     width: 100%;
     height: var(--plan-input-h, 38px); /* 全部輸入元件統一高度（窄版 34px，見 @container） */
     padding: 0 12px;
@@ -51,9 +52,11 @@
 .plan-field select option { background: var(--bg-card); }
 .plan-field input::placeholder { color: var(--text-faint); }
 .plan-field input:focus,
-.plan-field select:focus { border-color: var(--neon-blue); box-shadow: 0 0 8px rgba(0, 210, 255, 0.3); }
+.plan-field select:focus,
+.sr-row input:focus { border-color: var(--neon-blue); box-shadow: 0 0 8px rgba(0, 210, 255, 0.3); }
 
-.plan-field .error { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255, 0, 127, 0.3); }
+.plan-field .error,
+.sr-row .error { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255, 0, 127, 0.3); }
 
 /* 現金流清單 */
 .cf-list { display: flex; flex-direction: column; gap: 12px; }
@@ -81,6 +84,10 @@
 .cf-row .plan-field input,
 .cf-row .plan-field select { padding: 0 10px; font-size: 0.92rem; }
 .cf-name input { color: var(--text-primary); font-family: inherit; }
+/* 隨通膨調整勾選：獨立一行（單次週期隱藏） */
+.cf-infl { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-secondary); cursor: pointer; }
+.cf-infl[hidden] { display: none; }
+.cf-infl input { accent-color: var(--neon-blue); }
 .cf-del {
     height: var(--plan-input-h, 38px);
     background: transparent;
@@ -101,6 +108,52 @@
     transition: background 0.2s;
 }
 .cf-add:hover { background: rgba(0, 210, 255, 0.06); }
+
+/* 股票比例時程清單（基本設定頁籤，按鈕沿用 .cf-add / .cf-del） */
+.sr-block { margin-top: 18px; }
+.sr-title { font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px; }
+.sr-title span { font-size: 0.78rem; color: var(--text-muted); margin-left: 6px; }
+.sr-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+.sr-list { display: flex; flex-direction: column; gap: 10px; }
+.sr-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+.sr-row input[type=number] { width: 80px; flex: 0 1 80px; min-width: 0; height: var(--plan-input-h, 38px); padding: 0 10px; font-size: 0.92rem; }
+.sr-row .cf-del { margin-left: auto; width: var(--plan-input-h, 38px); flex: 0 0 var(--plan-input-h, 38px); }
+.sr-text { white-space: nowrap; }
+.sr-add:disabled { opacity: 0.4; cursor: not-allowed; }
+.sr-add:disabled:hover { background: transparent; }
+
+/* 大跌加碼頁籤（清單沿用 .sr-row / .cf-add / .cf-del）：關閉時整區灰階、不可操作 */
+.dip-switch { margin-top: 0; }
+.dip-switch span { color: var(--text-primary); }
+.dip-off-note { font-style: normal; font-size: 0.78rem; color: var(--text-muted); margin-left: 4px; }
+.dip-body { margin-top: 16px; transition: opacity 0.2s; }
+.dip-body.disabled { opacity: 0.4; }
+.dip-body .sr-row { flex-wrap: wrap; gap: 6px; padding: 10px; }
+.dip-body .sr-text { font-size: 0.85rem; }
+#dip-list .sr-row { flex-wrap: nowrap; }
+#dip-list .sr-row input[type=number] { width: 58px; flex: 0 1 58px; padding: 0 4px; font-size: 0.85rem; }
+#dip-list .sr-row .cf-del { width: 32px; flex: 0 0 32px; }
+.dip-recover-title { margin-top: 16px; }
+.dip-recover-desc { margin-top: 10px; margin-bottom: 0; }
+
+/* 其他頁籤的「到大跌加碼設定」提示 */
+.plan-goto { margin-top: 16px; font-size: 0.82rem; color: var(--text-muted); }
+.plan-goto-btn {
+    margin-left: 6px; padding: 2px 10px;
+    background: transparent; border: 1px solid rgba(0, 210, 255, 0.4); border-radius: 999px;
+    color: var(--neon-blue); font-size: 0.8rem; cursor: pointer; transition: background 0.2s;
+}
+.plan-goto-btn:hover { background: rgba(0, 210, 255, 0.1); }
 
 /* 單選卡片（定期購買時機等） */
 .plan-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
@@ -312,7 +365,7 @@
 .plan-tab.error, .plan-tab.error .plan-tab-status { color: var(--neon-pink); }
 .plan-tab.error.active { border-bottom-color: var(--neon-pink); }
 
-/* 手機「步驟 n/5」 */
+/* 手機「步驟 n/6」 */
 .plan-steps-mobile { display: none; }
 .plan-step-btn {
     width: 36px; height: 36px;
@@ -373,6 +426,7 @@
 .plan-compare { margin: -8px 0 20px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.8; }
 .plan-compare .compare-val { font-family: var(--font-num); font-weight: 700; color: var(--text-primary); }
 .plan-dataend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: -8px 0 18px; }
+.plan-dataend[hidden] { display: none; }
 .plan-dataend-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 1px; }
 .plan-dataend-note { font-size: 0.78rem; color: var(--text-muted); }
 .plan-dataend-note[hidden] { display: none; }
@@ -438,6 +492,7 @@
     .cf-row > * { order: 3; flex: 1 1 0; min-width: 0; }
     .cf-row > .cf-name { order: 1; flex: 1.3 1 0; }
     .cf-row > .cf-name + .plan-field { order: 1; }
+    .cf-row > .cf-infl { order: 4; flex: 1 1 100%; }
     .cf-row > .cf-del { order: 1; flex: 0 0 var(--plan-input-h); align-self: flex-end; }
     .cf-row > .plan-field:has(select) { flex: 0 0 68px; }
     .cf-row .plan-field[hidden] { display: none; }
@@ -473,3 +528,89 @@
     }
     .plan-stats .data-box span { font-size: 1rem; }
 }
+
+/* 年度明細 Modal：標題左右切換年度 */
+.yearly-modal-nav { display: flex; align-items: center; gap: 10px; }
+.yearly-nav-btn {
+    background: none; border: 1px solid var(--text-muted); color: var(--neon-blue);
+    width: 28px; height: 28px; line-height: 1; font-size: 1.1rem; cursor: pointer;
+}
+.yearly-nav-btn:hover:not(:disabled) { border-color: var(--neon-blue); }
+.yearly-nav-btn:disabled { opacity: .3; cursor: default; }
+
+/* 案例按鈕與 Modal */
+.plan-case-btn {
+    margin-left: 8px; padding: 2px 12px; vertical-align: middle;
+    border-radius: 999px; border: 1px solid rgba(0, 210, 255, 0.4); background: transparent;
+    color: var(--text-secondary); font-size: 0.78rem; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+.plan-case-btn:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+.plan-cases-panel { width: min(95vw, 640px); max-height: 85vh; display: flex; flex-direction: column; }
+.plan-cases-list { overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.plan-cases-msg { font-size: 0.85rem; color: var(--text-muted); }
+.plan-case-card {
+    display: flex; align-items: center; gap: 16px; padding: 14px 16px;
+    border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 4px;
+}
+.plan-case-body { flex: 1; min-width: 0; }
+.plan-case-title { font-size: 0.95rem; color: var(--text-primary, #fff); }
+.plan-case-author { margin-left: 6px; font-size: 0.75rem; color: var(--text-muted); }
+.plan-case-desc { margin-top: 6px; font-size: 0.8rem; line-height: 1.6; color: var(--text-secondary); }
+.plan-case-summary { margin-top: 6px; font-size: 0.78rem; font-family: var(--font-num); color: var(--neon-blue); }
+.plan-case-apply {
+    flex: none; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--neon-blue);
+    background: rgba(0, 210, 255, 0.1); color: var(--neon-blue); font-size: 0.8rem; cursor: pointer;
+}
+.plan-case-apply:hover { background: rgba(0, 210, 255, 0.25); }
+@media (max-width: 768px) {
+    .plan-case-card { flex-direction: column; align-items: stretch; gap: 10px; }
+    .plan-case-apply { align-self: flex-end; }
+}
+
+/* 方案對照（釘住 A） */
+.plan-pin-btn {
+    margin-left: auto; padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(0, 210, 255, 0.4); background: transparent;
+    color: var(--text-secondary); font-size: 0.82rem; cursor: pointer; transition: border-color 0.15s, color 0.15s;
+}
+.plan-pin-btn:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+#plan-compare[hidden], [data-lock-note][hidden] { display: none; }
+.lock-note { margin-left: 0; font-style: normal; font-size: 0.75rem; color: var(--text-muted); }
+.lock-note-pane { margin: 0 0 14px; }
+.plan-field input:disabled, .plan-check input:disabled { opacity: 0.4; cursor: not-allowed; }
+.plan-check:has(input:disabled) { opacity: 0.55; cursor: not-allowed; }
+.plan-seg button:disabled { opacity: 0.4; cursor: not-allowed; }
+.plan-seg button:disabled:hover { color: inherit; }
+.cmp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 8px; }
+.cmp-label { font-family: var(--font-num); font-size: 0.85rem; color: var(--neon-blue); line-height: 1.6; }
+.cmp-lock-tip { display: block; margin-bottom: 16px; }
+.cmp-table-wrap { overflow-x: auto; margin-bottom: 20px; }
+.cmp-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.cmp-table th, .cmp-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: right; white-space: nowrap; }
+.cmp-table thead th:first-child { text-align: left; }
+.cmp-table thead th { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+.cmp-table tbody th { text-align: left; font-weight: 400; color: var(--text-secondary); }
+.cmp-table td { font-family: var(--font-num); color: var(--text-primary); }
+.cmp-table td.cmp-delta.positive { color: var(--color-up); }
+.cmp-table td.cmp-delta.negative { color: var(--color-down); }
+.cmp-table .cmp-empty { text-align: center; }
+.cmp-diff-title { margin-bottom: 8px; font-size: 0.9rem; color: var(--text-primary); }
+.cmp-diff-list { margin: 0 0 4px; padding-left: 18px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.8; }
+.cmp-empty { font-size: 0.82rem; color: var(--text-muted); }
+.cmp-diff-fold summary { cursor: pointer; font-size: 0.82rem; color: var(--neon-blue); margin-bottom: 6px; }
+.cmp-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.cmp-param { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.82rem; }
+.cmp-param span:first-child { flex: 0 0 8.5em; color: var(--text-muted); }
+.cmp-param span:last-child { flex: 1; min-width: 0; color: var(--text-primary); overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+    .cmp-table { font-size: 0.68rem; }
+    .cmp-table th, .cmp-table td { padding: 8px 3px; }
+    .cmp-table tbody th { white-space: normal; width: 4.2em; }
+    .cmp-diff-list { padding-left: 16px; }
+}
+
+/* 釘住對照組 A：統計卡下方 A 行、圖例說明（紫 #A78BFA 同明細圖 A 線） */
+.plan-stats .rs-a { margin-top: 4px; font-size: 0.72rem; line-height: 1.5; color: var(--text-muted); }
+.plan-stats .rs-a span { display: inline-block; white-space: nowrap; font-size: 0.72rem; } /* 放不下時整段換到下一行，不從中截斷 */
+.plan-stats .rs-a .rs-a-val { color: #A78BFA; font-family: var(--font-num); }
+.plan-toolbar .rs-a-note { align-self: center; flex-basis: 100%; order: 3; }

@@ -21,9 +21,9 @@ export function yearlySummary(r, years) {
     }));
 
     for (const t of r.trades) {
-        const row = rows[yearIdx(t.date)];
-        if (t.type === 'flow') t.amount > 0 ? row.inflow += t.amount : row.outflow -= t.amount;
-        else row[t.type] += t.amount; // buy / sell
+        const row = rows[yearIdx(t.date)], amount = t.amount;
+        if (t.type === 'flow') t.amount > 0 ? row.inflow += amount : row.outflow -= amount;
+        else row[t.type] += amount; // buy / sell
         row.cost += t.cost;
     }
     for (const d of r.daily) {

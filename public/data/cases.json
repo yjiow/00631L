@@ -1,0 +1,182 @@
+[
+  {
+    "id": "small-dca-glide",
+    "title": "小額定投・越老越保守",
+    "author": "站長",
+    "desc": "剛出社會、小額定投，隨年資逐步降低股票比例：初期 80%，第 11 年起 65%，第 16 年起 50%。",
+    "plan": {
+      "initialCapital": 30000,
+      "stockRatio": 0.8,
+      "years": 20,
+      "inflationRate": 0.02,
+      "stockRatioSchedule": [
+        {
+          "fromYear": 11,
+          "ratio": 0.65
+        },
+        {
+          "fromYear": 16,
+          "ratio": 0.5
+        }
+      ],
+      "cashflows": [
+        {
+          "name": "每月提撥",
+          "amount": 3000,
+          "period": "monthly",
+          "month": 1,
+          "day": 5,
+          "fromYear": 1,
+          "toYear": null,
+          "inflation": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "break-even-dip",
+    "title": "收支打平＋大跌加碼",
+    "author": "站長",
+    "desc": "以百萬信貸 50/50 長期策略投資，與加上大跌加碼的策略，做20年滾動模擬情境。",
+    "plan": {
+      "initialCapital": 1000000,
+      "stockRatio": 0.5,
+      "years": 20,
+      "inflationRate": 0.02,
+      "cashflows": [
+        {
+          "name": "每月信貸還款",
+          "amount": -9700,
+          "period": "monthly",
+          "month": 1,
+          "day": 5,
+          "fromYear": 1,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "2年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 2,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "4年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 4,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "6年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 6,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "8年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 8,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "10年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 10,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "12年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 12,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "14年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 14,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "16年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 16,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "18年增貸",
+          "amount": 170000,
+          "period": "once",
+          "month": 12,
+          "day": 31,
+          "fromYear": 18,
+          "toYear": null,
+          "inflation": false
+        },
+        {
+          "name": "還款",
+          "amount": -830000,
+          "period": "once",
+          "month": 12,
+          "day": 5,
+          "fromYear": 20,
+          "toYear": null,
+          "inflation": false
+        }
+      ],
+      "purchase": {
+        "timing": "none"
+      },
+      "dipBuy": {
+        "enabled": true,
+        "tiers": [
+          {
+            "drawdown": 0.5,
+            "cashPct": 0.3
+          },
+          {
+            "drawdown": 0.7,
+            "cashPct": 0.5
+          },
+          {
+            "drawdown": 0.8,
+            "cashPct": 1
+          }
+        ],
+        "recoverAt": 0.3,
+        "recoverMonths": 12
+      }
+    }
+  }
+]

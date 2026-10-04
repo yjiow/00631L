@@ -3,9 +3,10 @@
  * 年度明細 Modal（點年度列開啟）：按時間列出該年所有現金流與買賣，附交易後現金與股票市值（算好的金額，股數 × 股價列為小字附註），供比對現金／市值判斷是否真的需要再平衡
  */
 import { fmtYuan, ymd } from './planFormat.js';
+import { bindDocKey } from '../../ui/docKey.js';
 
 const TYPE_LABEL = { flow: '收支', buy: '買進', sell: '賣出' };
-const REASON_LABEL = { initial: '期初配置', inflow: '入帳', purchase: '定期購買', rebalance: '再平衡', shortfall: '扣款賣股' };
+const REASON_LABEL = { initial: '期初配置', inflow: '入帳', purchase: '定期購買', rebalance: '再平衡', stage: '比例切換', shortfall: '扣款賣股', dip: '大跌加碼', recover: '大跌收回' };
 
 const $ = id => document.getElementById(id);
 
@@ -45,8 +46,19 @@ function groupHtml(group, dailyMap, zebra) {
     </tr>`).join('');
 }
 
-// year：yearlySummary 的單一年度列（含 fromDate / endDate）；trades：完整交易紀錄；dailyMap：date → daily 項目；cashRate：現金年利率
-export function showYearlyDetail(year, trades, dailyMap, cashRate) {
+let state = null; // { years, idx, trades, dailyMap, cashRate }：供「上一年 / 下一年」切換
+
+// years：yearlySummary 全部年度列（含 fromDate / endDate）；year：要開啟的那一年；trades：完整交易紀錄；dailyMap：date → daily 項目；cashRate：現金年利率
+export function showYearlyDetail(year, trades, dailyMap, cashRate, years = [year]) {
+    state = { years, idx: Math.max(0, years.findIndex(y => y.year === year.year)), trades, dailyMap, cashRate };
+    renderYear();
+}
+
+function renderYear() {
+    const { years, idx, trades, dailyMap, cashRate } = state;
+    const year = years[idx];
+    $('modal-yearly-prev').disabled = idx === 0;
+    $('modal-yearly-next').disabled = idx === years.length - 1;
     const rows = trades.filter(t => t.date >= year.fromDate && t.date <= year.endDate);
     $('modal-yearly-title').textContent = `第 ${year.year} 年明細（${ymd(year.fromDate)}～${ymd(year.endDate)}）`;
     $('modal-yearly-body').innerHTML = rows.length
@@ -54,8 +66,10 @@ export function showYearlyDetail(year, trades, dailyMap, cashRate) {
         : '<tr><td colspan="6" class="yearly-modal-empty">本年無異動</td></tr>';
     // 現金利息未逐日列為交易，提醒以免誤認交易後現金對不起來是算錯
     const note = $('modal-yearly-note');
-    note.hidden = !cashRate;
-    note.textContent = cashRate ? `交易後現金已包含期間現金利息（年利率 ${(cashRate * 100).toFixed(2)}%），未逐日列出。` : '';
+    const notes = [];
+    if (cashRate) notes.push(`交易後現金已包含期間現金利息（年利率 ${(cashRate * 100).toFixed(2)}%），未逐日列出。`);
+    note.hidden = !notes.length;
+    note.textContent = notes.join('');
     $('modal-yearly').style.display = 'flex';
     $('modal-yearly').querySelector('.yearly-modal-scroll').scrollTo(0, 0); // 切換年度時捲回頂端；display:none 時設定不會生效，須在顯示後才設
 }
@@ -64,5 +78,14 @@ export function initYearlyDetailModal() {
     const modal = $('modal-yearly');
     const close = () => { modal.style.display = 'none'; };
     $('modal-yearly-close').addEventListener('click', close);
+    const step = d => { if (state && state.years[state.idx + d]) { state.idx += d; renderYear(); } };
+    $('modal-yearly-prev').addEventListener('click', () => step(-1));
+    $('modal-yearly-next').addEventListener('click', () => step(1));
+    bindDocKey('modal-yearly', e => {
+        if (modal.style.display === 'none') return;
+        if (e.key === 'ArrowLeft') step(-1);
+        else if (e.key === 'ArrowRight') step(1);
+        else if (e.key === 'Escape') close();
+    });
     modal.addEventListener('click', e => { if (e.target === modal) close(); });
 }

@@ -6,6 +6,7 @@
 import { renderRollingChart } from '../../charts/planCharts.js';
 import { fmtMoney, fmtRate, ym, signClass } from './planFormat.js';
 import { daysBetween } from '../../core/plan/calendar.js';
+import { aStatRows, aLineData } from './rollingA.js';
 
 const $ = id => document.getElementById(id);
 
@@ -14,6 +15,7 @@ let byValue = [];     // 依期末資產由差到好
 let sortMode = 'time';
 let selectedIdx = null;
 let onSelect = () => {};
+let resultsA = null;  // 釘住的對照組 A 的滾動結果（未釘住為 null）
 
 const median = arr => {
     const s = [...arr].sort((a, b) => a - b), n = s.length;
@@ -29,7 +31,42 @@ const PICKS = {
 
 function draw() {
     const items = sortMode === 'time' ? results : byValue;
-    renderRollingChart(items, selectedIdx, median(results.map(r => r.final)), select, sortMode === 'value');
+    const byRank = sortMode === 'value';
+    renderRollingChart(items, selectedIdx, median(results.map(r => r.final)), select, byRank,
+        resultsA && aLineData(resultsA, items, byRank));
+}
+
+// 統計卡的 A 行（釘住期間才有；未釘住時移除，卡片 DOM 與原本相同）與圖例說明
+const CARD_IDS = { success: 'rs-success', worst: 'rs-worst', median: 'rs-median', best: 'rs-best', xirr: 'rs-xirr' };
+function renderAExtras() {
+    document.querySelectorAll('#plan-rolling .rs-a, #plan-rolling .rs-a-note').forEach(el => el.remove());
+    if (!resultsA || !results.length) return;
+    const rows = aStatRows(resultsA, results);
+    for (const [key, id] of Object.entries(CARD_IDS)) {
+        const row = rows[key], div = document.createElement('div');
+        div.className = 'rs-a';
+        const aVal = document.createElement('span');
+        aVal.className = 'rs-a-val';
+        aVal.textContent = `A ${row.a}`;
+        div.append(aVal);
+        $(id).parentElement.append(div);
+    }
+    const note = document.createElement('span');
+    note.className = 'plan-dataend-note rs-a-note';
+    note.textContent = '紫線＝對照組 A';
+    $('rolling-sort').parentElement.append(note);
+}
+
+// 視圖重新載入時清除上次殘留的 A（不重繪）
+export const resetRollingA = () => { resultsA = null; };
+
+// 設定 / 取消對照組 A（rsA：simulateRolling 結果，null 或空陣列 = 取消）；有變化才重繪
+export function setRollingA(rsA) {
+    const next = rsA?.length ? rsA : null;
+    if (!next && !resultsA) return;
+    resultsA = next;
+    renderAExtras();
+    if (results.length) draw();
 }
 
 function select(startIdx) {
@@ -90,5 +127,6 @@ export function renderRolling(rs, years, dataEnd, handler) {
     $('rs-xirr').textContent = fmtRate(xirrMedian);
     $('rs-xirr').className = signClass(xirrMedian);
 
+    renderAExtras();
     select(PICKS.median());
 }

@@ -44,7 +44,7 @@ export function renderYearly(ys, tradesArg, dailyArg, rateArg) {
             const tr = e.target.closest('.yearly-row');
             if (!tr) return;
             const year = rows.find(r => r.year === +tr.dataset.year);
-            if (year) showYearlyDetail(year, trades, dailyMap, cashRate);
+            if (year) showYearlyDetail(year, trades, dailyMap, cashRate, rows);
         });
     }
     draw();

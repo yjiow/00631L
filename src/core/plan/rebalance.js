@@ -26,7 +26,11 @@ export const topUpBudget = (account, price, ratio) => Math.max(0, account.value(
 
 // 調回目標比例：股票過多賣出、不足以現金買進（整數股、含交易成本）
 export function rebalanceTo(account, price, ratio, reason = 'rebalance') {
-    if (!canRebalance(ratio)) return;
+    if (canRebalance(ratio)) allocateTo(account, price, ratio, reason);
+}
+
+// 強制調到目標比例（含 0 / 100%，供股票比例時程階段切換；不受 canRebalance 限制）
+export function allocateTo(account, price, ratio, reason) {
     const target = account.value(price) * ratio;
     const stock = account.shares * price;
     if (stock > target) account.sell(price, Math.floor((stock - target) / price), reason);
