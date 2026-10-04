@@ -1,0 +1,253 @@
+/* ===== 投資計畫模擬頁（views/plan.html）===== */
+#plan-results > .panel-card,
+.plan-params { margin-bottom: 24px; }
+
+.plan-share-feedback { margin-left: 8px; font-size: 0.78rem; font-family: var(--font-num); color: var(--neon-blue); vertical-align: middle; }
+
+.plan-presets { margin-bottom: 20px; }
+.plan-presets-hint { margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); }
+.plan-presets-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.plan-preset-btn {
+    flex: 1 1 0;
+    min-width: fit-content;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.plan-preset-btn:hover { border-color: var(--neon-blue); color: var(--neon-blue); }
+.plan-preset-btn.active { border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0, 210, 255, 0.1); }
+.plan-presets-desc { margin-top: 8px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+
+.plan-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px 20px;
+    align-items: end;
+}
+
+.plan-field { display: flex; flex-direction: column; gap: 8px; }
+.plan-field span { font-size: 0.85rem; color: var(--text-secondary); }
+
+.plan-field input,
+.plan-field select,
+.sr-row input {
+    width: 100%;
+    height: var(--plan-input-h, 38px); /* 全部輸入元件統一高度（窄版 34px，見 @container） */
+    padding: 0 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 3px;
+    color: var(--neon-blue);
+    font-family: var(--font-num);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.plan-field select option { background: var(--bg-card); }
+.plan-field input::placeholder { color: var(--text-faint); }
+.plan-field input:focus,
+.plan-field select:focus,
+.sr-row input:focus { border-color: var(--neon-blue); box-shadow: 0 0 8px rgba(0, 210, 255, 0.3); }
+
+.plan-field .error,
+.sr-row .error { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255, 0, 127, 0.3); }
+
+/* 現金流清單 */
+.cf-list { display: flex; flex-direction: column; gap: 12px; }
+.cf-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1.3fr 0.9fr 0.6fr 0.6fr 0.8fr 0.8fr 36px;
+    gap: 10px;
+    align-items: end;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+}
+/* 不適用的欄位：電腦版顯示虛線空框（保留位置，各列對齊） */
+.cf-row .plan-field[hidden] { display: flex; }
+.cf-row .plan-field[hidden] > span { color: var(--text-faint); }
+.cf-row .plan-field[hidden] input {
+    color: transparent;
+    background: transparent;
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+}
+.cf-row .plan-field[hidden] input::placeholder { color: transparent; }
+.cf-row .plan-field input,
+.cf-row .plan-field select { padding: 0 10px; font-size: 0.92rem; }
+.cf-name input { color: var(--text-primary); font-family: inherit; }
+/* 隨通膨調整勾選：獨立一行（單次週期隱藏） */
+.cf-infl { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-secondary); cursor: pointer; }
+.cf-infl[hidden] { display: none; }
+.cf-infl input { accent-color: var(--neon-blue); }
+.cf-del {
+    height: var(--plan-input-h, 38px);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+.cf-del:hover { color: var(--neon-pink); border-color: var(--neon-pink); }
+.cf-add {
+    padding: 10px;
+    background: transparent;
+    border: 1px dashed rgba(0, 210, 255, 0.3);
+    border-radius: 3px;
+    color: var(--neon-blue);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.cf-add:hover { background: rgba(0, 210, 255, 0.06); }
+
+/* 股票比例時程清單（基本設定頁籤，按鈕沿用 .cf-add / .cf-del） */
+.sr-block { margin-top: 18px; }
+.sr-title { font-size: 0.9rem; color: var(--text-primary); margin-bottom: 4px; }
+.sr-title span { font-size: 0.78rem; color: var(--text-muted); margin-left: 6px; }
+.sr-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+.sr-list { display: flex; flex-direction: column; gap: 10px; }
+.sr-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+.sr-row input[type=number] { width: 80px; flex: 0 1 80px; min-width: 0; height: var(--plan-input-h, 38px); padding: 0 10px; font-size: 0.92rem; }
+.sr-row .cf-del { margin-left: auto; width: var(--plan-input-h, 38px); flex: 0 0 var(--plan-input-h, 38px); }
+.sr-text { white-space: nowrap; }
+.sr-add:disabled { opacity: 0.4; cursor: not-allowed; }
+.sr-add:disabled:hover { background: transparent; }
+
+/* 大跌加碼頁籤（清單沿用 .sr-row / .cf-add / .cf-del）：關閉時整區灰階、不可操作 */
+.dip-switch { margin-top: 0; }
+.dip-switch span { color: var(--text-primary); }
+.dip-off-note { font-style: normal; font-size: 0.78rem; color: var(--text-muted); margin-left: 4px; }
+.dip-body { margin-top: 16px; transition: opacity 0.2s; }
+.dip-body.disabled { opacity: 0.4; }
+.dip-body .sr-row { flex-wrap: wrap; gap: 6px; padding: 10px; }
+.dip-body .sr-text { font-size: 0.85rem; }
+#dip-list .sr-row { flex-wrap: nowrap; }
+#dip-list .sr-row input[type=number] { width: 58px; flex: 0 1 58px; padding: 0 4px; font-size: 0.85rem; }
+#dip-list .sr-row .cf-del { width: 32px; flex: 0 0 32px; }
+.dip-recover-title { margin-top: 16px; }
+.dip-recover-desc { margin-top: 10px; margin-bottom: 0; }
+
+/* 其他頁籤的「到大跌加碼設定」提示 */
+.plan-goto { margin-top: 16px; font-size: 0.82rem; color: var(--text-muted); }
+.plan-goto-btn {
+    margin-left: 6px; padding: 2px 10px;
+    background: transparent; border: 1px solid rgba(0, 210, 255, 0.4); border-radius: 999px;
+    color: var(--neon-blue); font-size: 0.8rem; cursor: pointer; transition: background 0.2s;
+}
+.plan-goto-btn:hover { background: rgba(0, 210, 255, 0.1); }
+
+/* 單選卡片（定期購買時機等） */
+.plan-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+.plan-option {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 14px 14px 40px;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.plan-option:hover { border-color: rgba(0, 210, 255, 0.35); }
+.plan-option:has(input:checked) { border-color: var(--neon-blue); background: rgba(0, 210, 255, 0.06); }
+.plan-option input { position: absolute; left: 14px; top: 16px; accent-color: var(--neon-blue); }
+.plan-option-title { color: var(--text-primary); font-size: 0.92rem; }
+.plan-option:has(input:checked) .plan-option-title { color: var(--neon-blue); }
+.plan-option-desc { color: var(--text-muted); font-size: 0.78rem; line-height: 1.6; }
+.plan-sub[hidden], .plan-field[hidden] { display: none; }
+.plan-field-wide { grid-column: 1 / -1; }
+/* 一行多項單選（投入方式） */
+.plan-radio-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.plan-radio-row label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: var(--plan-input-h, 38px);
+    padding: 0 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.plan-radio-row label:hover { border-color: rgba(0, 210, 255, 0.45); }
+.plan-radio-row label:has(input:checked) { border-color: var(--neon-blue); background: rgba(0, 210, 255, 0.08); }
+.plan-radio-row input { width: auto; height: auto; margin: 0; padding: 0; accent-color: var(--neon-blue); } /* 不套欄位統一高度 */
+.plan-radio-row span { font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap; }
+.plan-radio-row label:has(input:checked) span { color: var(--neon-blue); }
+.plan-sub + .plan-sub { margin-top: 0; }
+.plan-range { margin-top: 10px; margin-bottom: 14px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; }
+.plan-check { display: flex; align-items: flex-start; gap: 10px; margin-top: 18px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; cursor: pointer; }
+.plan-check input { margin-top: 3px; accent-color: var(--neon-blue); }
+#costs-fields.disabled { opacity: 0.4; }
+.plan-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-left: 3px solid var(--neon-blue);
+    border-radius: 3px;
+    background: rgba(0, 210, 255, 0.05);
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+.plan-banner[hidden] { display: none; }
+.plan-banner-btn {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+.plan-banner-btn:hover { color: var(--neon-blue); border-color: var(--neon-blue); }
+.plan-alert {
+    margin: -8px 0 18px;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 0, 127, 0.45);
+    border-left: 3px solid var(--neon-pink);
+    border-radius: 3px;
+    background: rgba(255, 0, 127, 0.08);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+.plan-alert[hidden] { display: none; }
+.plan-hint {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-left: 2px solid var(--color-best);
+    background: rgba(227, 179, 65, 0.06);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+

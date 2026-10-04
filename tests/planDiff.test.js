@@ -81,8 +81,8 @@ describe('compareStats', () => {
         expect(s.n).toBe(4);
         expect(s.better).toBe(2); // 持平不算優於
         expect(s.betterPct).toBe(0.5);
-        expect(s.a).toMatchObject({ worst: 100, best: 400, median: 250 });
-        expect(s.b).toMatchObject({ worst: 150, best: 500, median: 225 });
+        expect(s.a).toMatchObject({ worst: 100, best: 400, median: 200 }); // 偶數個取下中位數（200，非平均 250）
+        expect(s.b).toMatchObject({ worst: 150, best: 500, median: 200 }); // 同上（非平均 225）
     });
     it('XIRR 與最大回撤中位', () => {
         const s = compareStats([r(0, 1, 0.1, -10), r(1, 1, 0.3, -30), r(2, 1, 0.2, -50)], [r(0, 1, 0.4, -5), r(1, 1, 0.5, -15), r(2, 1, 0.6, -25)]);

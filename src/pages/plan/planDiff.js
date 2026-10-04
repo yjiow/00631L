@@ -15,9 +15,10 @@ export const fmtAmt = v => {
 const fmtFlow = v => v.toLocaleString('en-US');
 const pct = x => `${+(x * 100).toFixed(2)}%`;
 
+// 中位數：偶數個時取偏小的那個（下中位數），使統計卡數字與「中位」按鈕選中的真實起點一致
 export const median = arr => {
-    const s = [...arr].sort((a, b) => a - b), n = s.length;
-    return n % 2 ? s[n >> 1] : (s[n / 2 - 1] + s[n / 2]) / 2;
+    const s = [...arr].sort((a, b) => a - b);
+    return s[(s.length - 1) >> 1];
 };
 
 export const shouldFold = items => items.length > FOLD_LIMIT;

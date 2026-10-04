@@ -7,6 +7,7 @@ import { renderRollingChart } from '../../charts/planCharts.js';
 import { fmtMoney, fmtRate, ym, signClass } from './planFormat.js';
 import { daysBetween } from '../../core/plan/calendar.js';
 import { aStatRows, aLineData } from './rollingA.js';
+import { median } from './planDiff.js';
 
 const $ = id => document.getElementById(id);
 
@@ -17,10 +18,6 @@ let selectedIdx = null;
 let onSelect = () => {};
 let resultsA = null;  // 釘住的對照組 A 的滾動結果（未釘住為 null）
 
-const median = arr => {
-    const s = [...arr].sort((a, b) => a - b), n = s.length;
-    return n % 2 ? s[n >> 1] : (s[n / 2 - 1] + s[n / 2]) / 2;
-};
 
 // 快速選取對應的起點
 const PICKS = {

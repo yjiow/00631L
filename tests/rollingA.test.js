@@ -21,8 +21,8 @@ describe('aStatRows', () => {
         expect(s.success.delta).toEqual({ text: '▲ +25.0 pt', cls: 'positive' });
         expect(s.worst.a).toBe('0 元');
         expect(s.worst.delta.text).toBe('▲ +50 萬');
-        expect(s.median.a).toBe('150 萬');          // (100 萬 + 200 萬) / 2
-        expect(s.median.delta.text).toBe('▲ +50 萬'); // B 中位 200 萬
+        expect(s.median.a).toBe('100 萬');          // 偶數個取下中位數（100 萬，非平均 150 萬）
+        expect(s.median.delta.text).toBe('▲ +100 萬'); // B 中位 200 萬
         expect(s.best.a).toBe('300 萬');
         expect(s.best.delta.text).toBe('▲ +100 萬');
         expect(s.xirr.a).toBe('5.0%');               // xirr null 視為 -1，中位 = 5%
@@ -39,7 +39,7 @@ describe('aLineData', () => {
         const items = [r(0, 1), r(2, 1), r(9, 1)];
         const d = aLineData(rsA, items, false);
         expect(d.line).toEqual([3_000_000, 0, null]);
-        expect(d.median).toBe(1_500_000);
+        expect(d.median).toBe(1_000_000); // 下中位數
     });
     it('依結果：A 自行由小到大排序，長度不足補 null', () => {
         const d = aLineData(rsA, [r(0, 1), r(1, 1), r(2, 1), r(3, 1), r(4, 1)], true);

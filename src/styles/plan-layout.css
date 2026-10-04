@@ -1,0 +1,198 @@
+/* 頁籤 */
+.plan-tabs { display: flex; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 22px; }
+.plan-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 8px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+.plan-tab:hover { color: var(--text-primary); }
+.plan-tab.active { color: var(--neon-blue); border-bottom-color: var(--neon-blue); }
+.plan-tab-no {
+    display: inline-grid;
+    place-items: center;
+    width: 20px; height: 20px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-family: var(--font-num);
+    font-size: 0.72rem;
+}
+.plan-tab-status { font-size: 0.7rem; color: var(--text-faint); }
+.plan-tab.filled .plan-tab-status { color: var(--neon-blue); font-size: 0.8rem; }
+.plan-tab.error, .plan-tab.error .plan-tab-status { color: var(--neon-pink); }
+.plan-tab.error.active { border-bottom-color: var(--neon-pink); }
+
+/* 手機「步驟 n/6」 */
+.plan-steps-mobile { display: none; }
+.plan-step-btn {
+    width: 36px; height: 36px;
+    background: transparent;
+    border: 1px solid rgba(0, 210, 255, 0.25);
+    border-radius: 3px;
+    color: var(--neon-blue);
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.plan-pane { min-height: 110px; }
+.plan-pane-desc { margin-bottom: 16px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7; }
+.plan-pane-todo {
+    padding: 14px;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* 下一步 + 開始模擬 */
+.plan-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 14px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.plan-next {
+    padding: 10px 18px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+.plan-next:hover { color: var(--neon-blue); border-color: var(--neon-blue); }
+.plan-submit { width: auto; padding: 10px 28px; }
+
+.plan-note { margin-top: 16px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.7; }
+.plan-error { margin-top: 10px; font-size: 0.85rem; color: var(--neon-pink); }
+.plan-desc { margin: -12px 0 18px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7; }
+
+.plan-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.plan-stats .data-box span { font-size: 1.15rem; }
+.plan-stats .data-box span.positive { color: var(--color-up); }   /* 紅漲 */
+.plan-stats .data-box span.negative { color: var(--color-down); } /* 綠跌 */
+.plan-compare { margin: -8px 0 20px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.8; }
+.plan-compare .compare-val { font-family: var(--font-num); font-weight: 700; color: var(--text-primary); }
+.plan-dataend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: -8px 0 18px; }
+.plan-dataend[hidden] { display: none; }
+.plan-dataend-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 1px; }
+.plan-dataend-note { font-size: 0.78rem; color: var(--text-muted); }
+.plan-dataend-note[hidden] { display: none; }
+
+.plan-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+/* 分段按鈕 */
+.plan-seg { display: inline-flex; border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 3px; overflow: hidden; }
+.plan-seg button {
+    padding: 6px 14px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.plan-seg button + button { border-left: 1px solid rgba(0, 210, 255, 0.25); }
+.plan-seg button:hover { color: var(--neon-blue); }
+.plan-seg button.active { background: rgba(0, 210, 255, 0.12); color: var(--neon-blue); }
+
+/* 窄螢幕才顯示的電腦版建議 */
+.plan-device-tip { margin: -12px 0 16px; font-size: 0.78rem; color: var(--text-muted); }
+
+/* 寬螢幕：左參數（固定於導覽列下方，過高時自身捲動）、右結果（隨頁面捲動） */
+@media (min-width: 1100px) {
+    .plan-layout { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 24px; align-items: start; }
+    .plan-layout > .plan-params {
+        position: sticky;
+        top: calc(var(--plan-nav-h, 64px) + 12px);
+        max-height: calc(100vh - var(--plan-nav-h, 64px) - 24px);
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding: 24px 22px;
+    }
+    .plan-layout > .plan-params .panel-title { margin-bottom: 16px; }
+    .plan-device-tip { display: none; }
+    /* 左欄過長時「開始模擬」固定於左欄底部 */
+    .plan-layout > .plan-params .plan-actions {
+        position: sticky;
+        bottom: -24px; /* 延伸蓋住卡片下內距，避免內距中露出捲動內容 */
+        z-index: 2;
+        padding-bottom: 24px;
+        background: var(--bg-card);
+    }
+}
+
+/* 參數卡變窄時（手機、寬螢幕左欄）：欄位兩欄、現金流每列兩行、選項單欄、按鈕上下全寬 */
+.plan-params { container-type: inline-size; }
+@container (max-width: 560px) {
+    #plan-form { --plan-input-h: 34px; }
+    .plan-field input, .plan-field select { padding: 0 10px; }
+    .plan-form { grid-template-columns: 1fr 1fr; }
+    /* 現金流每列兩行：名稱 / 金額 / ✕ ｜ 週期 / 月 / 日 / 起 / 迄 */
+    .cf-row { display: flex; flex-wrap: wrap; gap: 8px 6px; padding: 10px; }
+    .cf-row::before { content: ""; flex-basis: 100%; order: 2; } /* 換行 */
+    .cf-row > * { order: 3; flex: 1 1 0; min-width: 0; }
+    .cf-row > .cf-name { order: 1; flex: 1.3 1 0; }
+    .cf-row > .cf-name + .plan-field { order: 1; }
+    .cf-row > .cf-infl { order: 4; flex: 1 1 100%; }
+    .cf-row > .cf-del { order: 1; flex: 0 0 var(--plan-input-h); align-self: flex-end; }
+    .cf-row > .plan-field:has(select) { flex: 0 0 68px; }
+    .cf-row .plan-field[hidden] { display: none; }
+    .cf-row .plan-field { gap: 4px; }
+    .cf-row .plan-field > span { font-size: 0.72rem; }
+    .cf-row .plan-field > span[data-short] { font-size: 0; }
+    .cf-row .plan-field > span[data-short]::after { content: attr(data-short); font-size: 0.72rem; }
+    .cf-row .plan-field input,
+    .cf-row .plan-field select { padding: 0 6px; font-size: 0.85rem; }
+    .plan-options { grid-template-columns: 1fr; gap: 8px; }
+    .plan-option { padding: 10px 12px 10px 38px; }
+    .plan-actions { flex-direction: column-reverse; align-items: stretch; }
+    .plan-submit { width: 100%; }
+    /* 緊湊頁籤：編號在上、名稱在下 */
+    .plan-tab { flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.76rem; }
+    .plan-tab-status { font-size: 0.66rem; line-height: 1; min-height: 0.66rem; }
+}
+
+@media (max-width: 1099px) {
+    .plan-anchors .plan-anchor-params { display: block; }
+}
+
+@media (max-width: 600px) {
+    .plan-stats { grid-template-columns: 1fr 1fr; }
+    .plan-tabs { display: none; }
+    .plan-steps-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        color: var(--neon-blue);
+        font-size: 0.95rem;
+    }
+    .plan-stats .data-box span { font-size: 1rem; }
+}
+

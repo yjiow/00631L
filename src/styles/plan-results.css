@@ -1,0 +1,80 @@
+/* 錨點列：固定於導覽列下方（top 由 planAnchors.js 依導覽列高度設定） */
+.plan-anchors {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 8px;
+    background: rgba(13, 17, 23, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+.plan-anchors button {
+    flex: 1;
+    padding: 7px 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.plan-anchors button:hover { color: var(--neon-blue); }
+.plan-anchors .plan-anchor-params { display: none; } /* 窄螢幕才顯示（寬螢幕參數固定在左欄） */
+.plan-anchors button.active { color: var(--neon-blue); background: rgba(0, 210, 255, 0.1); border-color: rgba(0, 210, 255, 0.35); }
+
+/* 年度明細表 */
+.yearly { margin-top: 28px; }
+.yearly-title { margin-bottom: 12px; font-size: 0.95rem; color: var(--text-card-title); }
+.yearly-scroll { overflow-x: auto; }
+.yearly-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 0.85rem; }
+.yearly-table th, .yearly-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); white-space: nowrap; }
+.yearly-table thead th { color: var(--text-secondary); font-weight: 500; text-align: right; border-bottom-color: rgba(255, 255, 255, 0.12); }
+.yearly-table thead th:first-child, .yearly-table tbody th { text-align: left; }
+.yearly-table tbody th { color: var(--text-primary); font-weight: 500; }
+.yearly-table td { text-align: right; font-family: var(--font-num); color: var(--text-secondary); }
+.yearly-table td.positive { color: var(--color-up); }
+.yearly-table td.negative { color: var(--color-down); }
+.yearly-table td.yearly-end { color: var(--neon-blue); }
+.yearly-table td.yearly-empty { color: var(--text-faint); }
+/* 左右捲動時年度欄固定 */
+.yearly-table thead th:first-child, .yearly-table tbody th { position: sticky; left: 0; z-index: 1; background: var(--bg-card); }
+.yearly-table tbody tr:hover { background: rgba(0, 210, 255, 0.04); }
+.yearly-row { cursor: pointer; }
+.yearly-range { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text-faint); font-family: var(--font-num); font-weight: 400; }
+.yearly-toggle {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    background: transparent;
+    border: 1px dashed rgba(0, 210, 255, 0.3);
+    border-radius: 3px;
+    color: var(--neon-blue);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.yearly-toggle[hidden] { display: none; }
+.yearly-toggle:hover { background: rgba(0, 210, 255, 0.06); }
+
+/* 年度明細 Modal：逐筆現金流與買賣（依時間排序） */
+.yearly-modal-scroll { overflow-x: auto; max-height: 60vh; }
+.yearly-modal-table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 0.82rem; }
+.yearly-modal-table th, .yearly-modal-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); white-space: nowrap; vertical-align: middle; }
+.yearly-modal-table thead th { position: sticky; top: 0; background: var(--bg-card); color: var(--text-secondary); font-weight: 500; text-align: left; border-bottom-color: rgba(255, 255, 255, 0.12); }
+.yearly-modal-table thead th:nth-child(n+4) { text-align: right; }
+.yearly-modal-table td { color: var(--text-secondary); }
+.yearly-modal-date, .yearly-modal-num { font-family: var(--font-num); }
+.yearly-modal-num { text-align: right; }
+.yearly-modal-table td.positive { color: var(--color-up); }
+.yearly-modal-table td.negative { color: var(--color-down); }
+.yearly-modal-table tbody tr.yearly-modal-odd { background: rgba(255, 255, 255, 0.05); }
+.yearly-modal-empty { text-align: center; color: var(--text-faint); }
+.yearly-modal-note { margin-top: 10px; font-size: 0.75rem; color: var(--text-faint); line-height: 1.6; }
+.yearly-modal-sub { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text-faint); }
+
