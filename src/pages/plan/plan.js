@@ -19,7 +19,7 @@ import { renderRolling, renderCompare, setRollingA, resetRollingA } from './roll
 import { renderDetail, initDetailPanel } from './detailPanel.js';
 import { savePlan, loadPlan, clearPlan } from './planStorage.js';
 import { initAnchors, refreshAnchors, scrollToSection } from './planAnchors.js';
-import { consumeSharedPlan, sharePlan } from './shareLink.js';
+import { consumeSharedPlan, sharePlan, buildShareUrl } from './shareLink.js';
 import { initPresets, clearPresetActive } from './planPresets.js';
 import { initCases, summarizePlan } from './planCases.js';
 import { diffPlans, compareStats, describePlan } from './planDiff.js';
@@ -65,6 +65,15 @@ function renderBanner() {
         : source === 'shared'
         ? '已載入朋友分享的計畫參數，調整後按「開始模擬」重新計算。'
         : '以下為預設參數（首頁 50/50 策略＋每月 1 萬）的範例結果，請調整參數後按「開始模擬」。'; // 文字對應 DEFAULT_PLAN
+}
+
+// 預先產生目前計畫的分享連結（計畫變動時重做）：點分享要在手勢內同步呼叫系統分享，不能當場壓縮
+let shareCache = { plan: null, url: null };
+function prepareShare() {
+    const plan = currentPlan;
+    if (shareCache.plan === plan) return;
+    shareCache = { plan, url: null };
+    buildShareUrl(plan).then(url => { if (shareCache.plan === plan) shareCache.url = url; }).catch(() => {});
 }
 
 let shareFeedbackTimer;
@@ -143,6 +152,7 @@ function compute(plan) {
     }
     showError(null);
     currentPlan = plan;
+    prepareShare();
     lastRs = rs;
     $('plan-results').hidden = false;
     $('rolling-end-note').hidden = !dataEnd;
@@ -243,7 +253,7 @@ export async function initPlan() {
         presetsEl.querySelector('[data-role=desc]').hidden = true;
     });
     $('plan-share').addEventListener('click', async () => {
-        const { status, url } = await sharePlan(currentPlan);
+        const { status, url } = await sharePlan(currentPlan, shareCache.plan === currentPlan ? shareCache.url : null);
         if (status === 'copied') showShareFeedback('已複製連結');
         else if (status === 'manual') prompt('複製此連結分享：', url);
     });

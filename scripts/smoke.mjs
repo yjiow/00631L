@@ -141,6 +141,25 @@ await check('投資計畫：分享連結產出、開啟後帶回參數並清除�
     if (/plan=/.test(await ev(`location.search`))) throw new Error('網址列未清除 plan 參數');
 });
 
+await check('投資計畫：點分享的當下同步呼叫系統分享（iPhone Safari 須在手勢內，不能先等壓縮）', async () => {
+    await waitFor(`$('rs-success')?.textContent.trim()`, '結果');
+    await sleep(800); // 等預先連結產生
+    const r = await ev(`(async () => {
+        let depth = 0, sync = null, sharedUrl = null;
+        const down = () => { depth = 1; }, up = () => { depth = 0; };
+        document.addEventListener('click', down, true); document.addEventListener('click', up, false);
+        Object.defineProperty(navigator, 'share', { value: async d => { sync = depth === 1; sharedUrl = d.url; }, configurable: true });
+        $('plan-share').click();
+        await new Promise(r => setTimeout(r, 400));
+        document.removeEventListener('click', down, true); document.removeEventListener('click', up, false);
+        Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+        return { sync, sharedUrl };
+    })()`);
+    if (r.sync === null) throw new Error('沒有呼叫系統分享');
+    if (r.sync !== true) throw new Error('系統分享不是在點擊當下同步呼叫（iPhone 會被拒絕）');
+    if (!/[?&]plan=/.test(r.sharedUrl ?? '')) throw new Error('分享連結不含 plan 參數');
+});
+
 console.log('手機版 390');
 await open(390);
 const PAGES = ['home', 'plan', 'trade', 'about'];

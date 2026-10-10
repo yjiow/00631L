@@ -90,6 +90,9 @@ export async function consumeSharedPlan() {
     } catch { return null; }
 }
 
-export async function sharePlan(plan) {
+// prebuiltUrl：預先產生的連結。iOS Safari 要求 navigator.share 在點擊當下同步呼叫（中間不能先 await 壓縮），
+// 有預先連結時直接分享（同步進入 shareUrl）；沒有才現場產生（iPhone 上可能被拒絕，會退回複製）
+export async function sharePlan(plan, prebuiltUrl) {
+    if (prebuiltUrl) return shareUrl(prebuiltUrl, '投資計畫模擬');
     return shareUrl(await buildShareUrl(plan), '投資計畫模擬');
 }

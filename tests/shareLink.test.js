@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { buildShareUrl, consumeSharedPlan } from '../src/pages/plan/shareLink.js';
+import { buildShareUrl, consumeSharedPlan, sharePlan } from '../src/pages/plan/shareLink.js';
 import { DEFAULT_PLAN, normalizePlan } from '../src/core/plan/defaults.js';
 
 // 涵蓋所有可設定欄位的計畫（日後新增參數時，請同步加進此處，確保分享連結往返不遺失）
@@ -82,5 +82,25 @@ describe('分享連結：讀取', () => {
             setLocation('?view=plan&plan=' + bad);
             expect(await withTimeout(consumeSharedPlan())).toBeNull();
         }
+    });
+});
+
+describe('分享：iPhone Safari 要求在點擊當下同步呼叫 navigator.share', () => {
+    it('有預先產生的連結 → 同步呼叫系統分享（不先 await）', async () => {
+        const share = vi.fn().mockResolvedValue();
+        vi.stubGlobal('navigator', { share, clipboard: { writeText: vi.fn() } });
+        const p = sharePlan(FULL_PLAN, 'http://localhost:5173/?view=plan&plan=gAAA');
+        expect(share).toHaveBeenCalledTimes(1); // 尚未 await 就已呼叫
+        expect(share.mock.calls[0][0].url).toBe('http://localhost:5173/?view=plan&plan=gAAA');
+        expect((await p).status).toBe('shared');
+    });
+
+    it('沒有預先連結 → 需先壓縮產生（非同步），之後才呼叫系統分享', async () => {
+        const share = vi.fn().mockResolvedValue();
+        vi.stubGlobal('navigator', { share, clipboard: { writeText: vi.fn() } });
+        const p = sharePlan(FULL_PLAN);
+        expect(share).not.toHaveBeenCalled(); // 這條路在 iPhone 會因失去手勢而被拒，故 plan.js 一律預先產生
+        expect((await p).status).toBe('shared');
+        expect(share).toHaveBeenCalledTimes(1);
     });
 });
