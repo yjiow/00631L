@@ -2,7 +2,10 @@
 #plan-results > .panel-card,
 .plan-params { margin-bottom: 24px; }
 
-.plan-share-feedback { margin-left: 8px; font-size: 0.78rem; font-family: var(--font-num); color: var(--neon-blue); vertical-align: middle; }
+/* 複製成功提示：分享圖示短暫變成 ✓（同尺寸、不佔額外寬度，標題列與「案例」按鈕不會跳動） */
+#plan-share.is-done { opacity: 1; color: var(--neon-blue); }
+#plan-share.is-done svg { display: none; }
+#plan-share.is-done::after { content: '✓'; display: inline-block; width: 14px; text-align: center; font-size: 14px; line-height: 14px; }
 
 .plan-presets { margin-bottom: 20px; }
 .plan-presets-hint { margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); }

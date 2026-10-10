@@ -58,19 +58,15 @@ function fromBase64Url(str) {
     return Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 }
 
-async function gzip(bytes) {
-    const writer = new CompressionStream('gzip');
-    const w = writer.writable.getWriter();
-    await w.write(bytes); await w.close();
-    return new Uint8Array(await new Response(writer.readable).arrayBuffer());
+// 寫入端不 await、與讀取端同時進行：先等寫完才讀會因串流背壓互等而卡死（分享按鈕無反應）；寫入錯誤會反映在讀取端
+async function pipeThrough(bytes, stream) {
+    const w = stream.writable.getWriter();
+    w.write(bytes).catch(() => {}); w.close().catch(() => {});
+    return new Uint8Array(await new Response(stream.readable).arrayBuffer());
 }
 
-async function gunzip(bytes) {
-    const reader = new DecompressionStream('gzip');
-    const w = reader.writable.getWriter();
-    await w.write(bytes); await w.close();
-    return new Uint8Array(await new Response(reader.readable).arrayBuffer());
-}
+const gzip = bytes => pipeThrough(bytes, new CompressionStream('gzip'));
+const gunzip = bytes => pipeThrough(bytes, new DecompressionStream('gzip'));
 
 export async function buildShareUrl(plan) {
     const raw = new TextEncoder().encode(JSON.stringify(toCompact(plan)));

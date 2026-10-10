@@ -70,10 +70,10 @@ function renderBanner() {
 let shareFeedbackTimer;
 function showShareFeedback(text) {
     clearTimeout(shareFeedbackTimer);
-    const el = $('plan-share-feedback');
-    el.textContent = text;
-    el.hidden = false;
-    shareFeedbackTimer = setTimeout(() => { el.hidden = true; }, 1800);
+    const btn = $('plan-share');
+    btn.classList.add('is-done');
+    btn.title = text;
+    shareFeedbackTimer = setTimeout(() => { btn.classList.remove('is-done'); btn.title = '分享此計畫參數'; }, 1800);
 }
 
 function showError(msg) {
