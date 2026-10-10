@@ -167,8 +167,9 @@ await check('各頁沒有水平溢出（不可左右捲動）', async () => {
     for (const view of PAGES) {
         await goView(view);
         await sleep(500);
-        const w = await ev(`[document.documentElement.scrollWidth, innerWidth]`);
-        if (w[0] > w[1] + 1) throw new Error(`${view} 頁寬 ${w[0]} 超出視窗 ${w[1]}`);
+        // 與固定的 390 比，不用 innerWidth：手機模式下頁面被撐寬時 innerWidth 會跟著變大（2026/10/10 首頁提示框撐寬到 454 即漏檢）
+        const w = await ev(`document.documentElement.scrollWidth`);
+        if (w > 390 + 1) throw new Error(`${view} 頁寬 ${w} 超出手機寬度 390`);
     }
 });
 await goView('plan');

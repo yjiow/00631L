@@ -125,14 +125,15 @@
     opacity: 0;
     position: absolute;
     bottom: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
+    right: -4px; /* 以圖示右緣對齊、往左展開並可換行：置中 + 不換行會讓手機版頁面被撐寬（iPhone 整頁縮小） */
+    width: max-content;
+    max-width: 220px;
     background: rgba(26, 31, 44, 0.85);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(0, 210, 255, 0.4);
     color: var(--text-light);
     font-size: 0.75rem;
-    white-space: nowrap;
+    line-height: 1.5;
     padding: 6px 10px;
     border-radius: 4px;
     pointer-events: none;
