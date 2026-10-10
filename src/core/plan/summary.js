@@ -21,6 +21,7 @@ export function yearlySummary(r, years) {
     }));
 
     for (const t of r.trades) {
+        if (t.type === 'interest') continue; // 現金利息只列於年度明細 Modal，不併入年度買賣 / 收支彙總
         const row = rows[yearIdx(t.date)], amount = t.amount;
         if (t.type === 'flow') t.amount > 0 ? row.inflow += amount : row.outflow -= amount;
         else row[t.type] += amount; // buy / sell

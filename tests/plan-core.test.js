@@ -179,11 +179,55 @@ describe('simulatePlan', () => {
         expect(r.mddPeriod).toEqual({ peak: '2000-02-01', trough: '2000-03-01', peakValue: 2000, troughValue: 500 });
     });
 
-    it('現金利息：按與上一交易日相隔天數比例計息', () => {
-        const r = simulatePlan(weekdays(), 0, plan({ initialCapital: 365_000, stockRatio: 0, cashRate: 0.1 }));
-        expect(r.daily[0].cash).toBe(365_000); // 第一天尚無前一交易日，不計息
-        expect(r.daily[1].date).toBe('2000-01-04'); // 與第一天相隔 1 個日曆天
-        expect(r.daily[1].cash).toBeCloseTo(365_100); // 365000 × 10% × 1/365 = 100
+    // 現金利息（日積數法）：6/21、12/21 與期末結息入帳並記 interest 交易；期間不複利
+    describe('現金利息', () => {
+        const cashPlan = over => plan({ initialCapital: 365_000, stockRatio: 0, cashRate: 0.1, ...over });
+        const interests = r => r.trades.filter(t => t.type === 'interest');
+
+        it('6/21、12/21 與期末各結息一次，金額為日積數、期間不複利', () => {
+            const r = simulatePlan(weekdays(), 0, cashPlan());
+            const its = interests(r);
+            expect(its.map(t => t.date)).toEqual(['2000-06-21', '2000-12-21', '2001-01-03']);
+            expect(its[0].amount).toBeCloseTo(365_000 * 0.1 * 170 / 365); // 1/3 → 6/21 共 170 天，期間用本金計、不複利
+            const c2 = 365_000 + its[0].amount;
+            expect(its[1].amount).toBeCloseTo(c2 * 0.1 * 183 / 365);       // 入帳後才滾入下一期本金
+            const c3 = c2 + its[1].amount;
+            expect(its[2].amount).toBeCloseTo(c3 * 0.1 * 13 / 365);        // 期末：12/21 → 1/3 未入帳的利息結入
+            expect(r.final).toBeCloseTo(c3 + its[2].amount);
+            expect(its[0]).toMatchObject({ shares: 0, cost: 0 });
+            // 期間內每日現金不變（尚未入帳）
+            expect(r.daily.find(d => d.date === '2000-06-20').cash).toBe(365_000);
+            expect(r.daily.find(d => d.date === '2000-06-21').cash).toBeCloseTo(365_000 + its[0].amount);
+        });
+
+        it('結息日非交易日順延至其後第一個交易日', () => {
+            const s = weekdays(undefined, 2001);
+            const keep = s.dates.map((d, i) => d !== '2000-06-21' ? i : -1).filter(i => i >= 0);
+            const series = { dates: keep.map(i => s.dates[i]), prices: keep.map(i => s.prices[i]) };
+            const its = interests(simulatePlan(series, 0, cashPlan()));
+            expect(its[0].date).toBe('2000-06-22');
+            expect(its[0].amount).toBeCloseTo(365_000 * 0.1 * 171 / 365);
+        });
+
+        it('cashRate 為 0 不產生利息列；利息不計入投入本金 / XIRR 現金流', () => {
+            const r0 = simulatePlan(weekdays(), 0, cashPlan({ cashRate: 0 }));
+            expect(interests(r0)).toHaveLength(0);
+            expect(r0.final).toBe(365_000);
+            const r = simulatePlan(weekdays(), 0, cashPlan());
+            expect(r.invested).toBe(365_000);
+            expect(r.xirr).toBeCloseTo(r.final / 365_000 - 1, 2); // 只有期初投入與期末資產，約一年期
+            expect(r.xirr).toBeGreaterThan(0.1);                  // 年中結息後再計息，年化略高於 10%
+        });
+
+        it('現金為 0 不產生利息列', () => {
+            const r = simulatePlan(weekdays(), 0, plan({ initialCapital: 1000, stockRatio: 1, cashRate: 0.1 }));
+            expect(interests(r)).toHaveLength(0);
+        });
+
+        it('detail:false 與 detail:true 的結果一致', () => {
+            const p = cashPlan({ cashflows: [{ amount: 1000, day: 5 }], purchase: { timing: 'none' } });
+            expect(simulatePlan(weekdays(), 0, p, { detail: false }).final).toBe(simulatePlan(weekdays(), 0, p).final);
+        });
     });
 
     it('資料不足 years 年回傳 null', () => {

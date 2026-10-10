@@ -27,9 +27,9 @@ export function initDetailPanel() {
     initYearlyDetailModal();
 }
 
-// r：simulatePlan 結果（含 daily / trades）；years：模擬年數；cashRate：現金年利率（供年度明細 Modal 附註）
+// r：simulatePlan 結果（含 daily / trades）；years：模擬年數
 // rA：釘住時對照組 A 同起點的 simulatePlan 結果（疊加於總資產曲線），未釘住為 null
-export function renderDetail(r, years, cashRate, rA = null) {
+export function renderDetail(r, years, rA = null) {
     last = r;
     const ys = yearlySummary(r, years);
     $('detail-desc').textContent = `${ymd(r.startDate)} 起 ～ ${ymd(r.endDate)}` + (r.brokeDate ? '（資金斷鏈中止）' : '');
@@ -48,5 +48,5 @@ export function renderDetail(r, years, cashRate, rA = null) {
     $('dt-mdd-box').title = m ? `${ymd(m.peak)}～${ymd(m.trough)}：${fmtMoney(m.peakValue)} → ${fmtMoney(m.troughValue)}（見資產曲線綠色區段）` : '';
     $('dt-cost').textContent = fmtMoney(r.costTotal);
     renderAssetChart(r.daily, r.mddPeriod, r.mdd, rA?.daily ?? null);
-    renderYearly(ys, r.trades, r.daily, cashRate);
+    renderYearly(ys, r.trades, r.daily);
 }

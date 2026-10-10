@@ -75,6 +75,5 @@
 .yearly-modal-table td.negative { color: var(--color-down); }
 .yearly-modal-table tbody tr.yearly-modal-odd { background: rgba(255, 255, 255, 0.05); }
 .yearly-modal-empty { text-align: center; color: var(--text-faint); }
-.yearly-modal-note { margin-top: 10px; font-size: 0.75rem; color: var(--text-faint); line-height: 1.6; }
 .yearly-modal-sub { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text-faint); }
 

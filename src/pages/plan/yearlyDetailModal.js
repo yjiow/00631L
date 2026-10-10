@@ -5,7 +5,7 @@
 import { fmtYuan, ymd } from './planFormat.js';
 import { bindDocKey } from '../../ui/docKey.js';
 
-const TYPE_LABEL = { flow: '收支', buy: '買進', sell: '賣出' };
+const TYPE_LABEL = { flow: '收支', buy: '買進', sell: '賣出', interest: '利息' };
 const REASON_LABEL = { initial: '期初配置', inflow: '入帳', purchase: '定期購買', rebalance: '再平衡', stage: '比例切換', shortfall: '扣款賣股', dip: '大跌加碼', recover: '大跌收回' };
 
 const $ = id => document.getElementById(id);
@@ -25,9 +25,9 @@ function groupByDate(trades) {
 // 注意：合併列（rowspan）後各 <tr> 的 <td> 數量不同，靠右對齊 / 等寬數字字體一律用 class 標示，
 // 不可用 :nth-child 判斷欄位（同一列裡第幾個 <td> 不等於視覺上第幾欄）
 function itemCells(t) {
-    const cashDelta = t.type === 'flow' ? t.amount : t.type === 'buy' ? -(t.amount + t.cost) : t.amount - t.cost; // buy/sell 的 amount 為成交金額（未扣成本）
+    const cashDelta = t.type === 'flow' || t.type === 'interest' ? t.amount : t.type === 'buy' ? -(t.amount + t.cost) : t.amount - t.cost; // buy/sell 的 amount 為成交金額（未扣成本）
     const sign = cashDelta > 0 ? 'positive' : cashDelta < 0 ? 'negative' : '';
-    const desc = t.type === 'flow' ? (t.name || '現金流') : (REASON_LABEL[t.reason] ?? '');
+    const desc = t.type === 'flow' ? (t.name || '現金流') : t.type === 'interest' ? '現金利息' : (REASON_LABEL[t.reason] ?? '');
     return `<td>${TYPE_LABEL[t.type]}</td><td>${desc}</td><td class="yearly-modal-num ${sign}">${cashDelta > 0 ? '+' : ''}${fmtYuan(cashDelta)}</td>`;
 }
 
@@ -46,16 +46,16 @@ function groupHtml(group, dailyMap, zebra) {
     </tr>`).join('');
 }
 
-let state = null; // { years, idx, trades, dailyMap, cashRate }：供「上一年 / 下一年」切換
+let state = null; // { years, idx, trades, dailyMap }：供「上一年 / 下一年」切換
 
-// years：yearlySummary 全部年度列（含 fromDate / endDate）；year：要開啟的那一年；trades：完整交易紀錄；dailyMap：date → daily 項目；cashRate：現金年利率
-export function showYearlyDetail(year, trades, dailyMap, cashRate, years = [year]) {
-    state = { years, idx: Math.max(0, years.findIndex(y => y.year === year.year)), trades, dailyMap, cashRate };
+// years：yearlySummary 全部年度列（含 fromDate / endDate）；year：要開啟的那一年；trades：完整交易紀錄；dailyMap：date → daily 項目
+export function showYearlyDetail(year, trades, dailyMap, years = [year]) {
+    state = { years, idx: Math.max(0, years.findIndex(y => y.year === year.year)), trades, dailyMap };
     renderYear();
 }
 
 function renderYear() {
-    const { years, idx, trades, dailyMap, cashRate } = state;
+    const { years, idx, trades, dailyMap } = state;
     const year = years[idx];
     $('modal-yearly-prev').disabled = idx === 0;
     $('modal-yearly-next').disabled = idx === years.length - 1;
@@ -64,12 +64,6 @@ function renderYear() {
     $('modal-yearly-body').innerHTML = rows.length
         ? groupByDate(rows).map((g, i) => groupHtml(g, dailyMap, i % 2 ? 'yearly-modal-odd' : 'yearly-modal-even')).join('')
         : '<tr><td colspan="6" class="yearly-modal-empty">本年無異動</td></tr>';
-    // 現金利息未逐日列為交易，提醒以免誤認交易後現金對不起來是算錯
-    const note = $('modal-yearly-note');
-    const notes = [];
-    if (cashRate) notes.push(`交易後現金已包含期間現金利息（年利率 ${(cashRate * 100).toFixed(2)}%），未逐日列出。`);
-    note.hidden = !notes.length;
-    note.textContent = notes.join('');
     $('modal-yearly').style.display = 'flex';
     $('modal-yearly').querySelector('.yearly-modal-scroll').scrollTo(0, 0); // 切換年度時捲回頂端；display:none 時設定不會生效，須在顯示後才設
 }

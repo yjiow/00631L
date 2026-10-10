@@ -20,6 +20,9 @@ export function toSeries(rows, field) {
     return { dates: valid.map(r => r.date), prices: valid.map(r => r[field]) };
 }
 
+// 結息期序號：每年 6/21、12/21 各進一期（日期落在不同期序即跨過結息日）
+const settleKey = d => +d.slice(0, 4) * 2 + (d.slice(5) >= '12-21' ? 2 : d.slice(5) >= '06-21' ? 1 : 0);
+
 // 入帳當天買進（股票比例 0 / 100% 時「達門檻才買」同「依股票比例」）
 function buyOnInflow(s, amount, price) {
     const { inflowMode, threshold } = s.plan.purchase;
@@ -82,15 +85,22 @@ export function simulatePlan(series, startIdx, plan, { detail = true } = {}) {
     s.account.buy(prices[startIdx], p.initialCapital * p.stockRatio, 'initial');
 
     const acts = buildSchedule(dates, startIdx, endIdx, p);
-    let peak = 0, mdd = 0, value = 0, brokeDate = null, a = 0;
+    let peak = 0, mdd = 0, value = 0, brokeDate = null, a = 0, accrued = 0; // accrued：已累計未入帳的現金利息
     let peakDate = null, mddPeriod = null; // 最大回撤的高點 / 低點日期與資產
     const { rebalance } = p;
     const checkDrift = rebalance.mode === 'threshold';
 
     for (let i = startIdx; i <= endIdx && !brokeDate; i++) {
         s.date = dates[i];
-        // 現金利息：固定年利率，按與上一交易日相隔的實際日曆天數比例計息（逐期滾入餘額）
-        if (i > startIdx && p.cashRate) s.account.cash += s.account.cash * p.cashRate * daysBetween(dates[i - 1], dates[i]) / 365;
+        // 現金利息（日積數法）：前一交易日收盤現金 × 年利率 × 相隔日曆天數 ÷ 365 累計，6/21、12/21（非交易日順延）或期末當天結息入帳並記交易；期間不複利，結息先於當日其他動作
+        if (i > startIdx && p.cashRate) {
+            accrued += s.account.cash * p.cashRate * daysBetween(dates[i - 1], dates[i]) / 365;
+            if ((i === endIdx || settleKey(dates[i]) > settleKey(dates[i - 1])) && accrued > 0) {
+                s.account.cash += accrued;
+                s.log('interest', { amount: accrued, shares: 0, cost: 0 });
+                accrued = 0;
+            }
+        }
         while (a < acts.length && acts[a].idx === i) {
             const act = acts[a++];
             if (!HANDLERS[act.kind](s, act, prices[i])) { brokeDate = dates[i]; break; }

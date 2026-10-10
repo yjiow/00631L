@@ -185,7 +185,23 @@ function setupDateEdit(labelId, isStart) {
     });
 }
 
+// 打字機特效（首頁標語）
+function runTypewriter(text, el, speed = 50) {
+    if (!el) return;
+    el.innerText = '';
+    let i = 0;
+    const timer = setInterval(() => {
+        if (i < text.length) {
+            el.innerText += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(timer);
+        }
+    }, speed);
+}
+
 export function initBacktest() {
+    runTypewriter('模擬過去，掌控您的財務未來。', $('typewriter-text'));
     const panel   = $('floatPanel');
     const trigger = document.querySelector('.float-trigger');
     if (!panel || !trigger) return;

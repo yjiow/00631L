@@ -14,8 +14,7 @@
 /* ===== 共用元件樣式（供各 views/ 使用）===== */
 .panel-card {
     background: var(--bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.1); /* 試用 B：半透明白（原 A：rgba(0, 210, 255, 0.15)） */
-    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);    border-radius: 4px;
     padding: 30px;
     position: relative;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);

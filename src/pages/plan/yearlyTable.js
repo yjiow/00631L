@@ -11,7 +11,6 @@ let expanded = false;
 let rows = [];
 let trades = [];
 let dailyMap = new Map();
-let cashRate = 0;
 
 const $ = id => document.getElementById(id);
 
@@ -29,12 +28,11 @@ function draw() {
     btn.textContent = expanded ? '收合 ▴' : `展開全部 ${rows.length} 年 ▾`;
 }
 
-// ys：yearlySummary 結果；tradesArg / dailyArg：simulatePlan 結果的 trades / daily（供點列開 Modal 用）；rateArg：現金年利率
-export function renderYearly(ys, tradesArg, dailyArg, rateArg) {
+// ys：yearlySummary 結果；tradesArg / dailyArg：simulatePlan 結果的 trades / daily（供點列開 Modal 用）
+export function renderYearly(ys, tradesArg, dailyArg) {
     rows = ys;
     trades = tradesArg;
     dailyMap = new Map(dailyArg.map(d => [d.date, d]));
-    cashRate = rateArg;
     const btn = $('yearly-toggle');
     const body = $('yearly-body');
     if (!btn.dataset.bound) {
@@ -44,7 +42,7 @@ export function renderYearly(ys, tradesArg, dailyArg, rateArg) {
             const tr = e.target.closest('.yearly-row');
             if (!tr) return;
             const year = rows.find(r => r.year === +tr.dataset.year);
-            if (year) showYearlyDetail(year, trades, dailyMap, cashRate, rows);
+            if (year) showYearlyDetail(year, trades, dailyMap, rows);
         });
     }
     draw();

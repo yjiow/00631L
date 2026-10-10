@@ -85,7 +85,7 @@ function showDetail(startIdx, scroll) {
     detailIdx = startIdx;
     // 釘住期間另算 A 在同一起點的每日資產（單次 simulatePlan），疊加於總資產曲線
     const rA = pinned ? simulatePlan(seriesOf(pinned.plan.target, pinned.dataEnd), startIdx, pinned.plan) : null;
-    renderDetail(simulatePlan(seriesOf(currentPlan.target, dataEnd), startIdx, currentPlan), currentPlan.years, currentPlan.cashRate, rA);
+    renderDetail(simulatePlan(seriesOf(currentPlan.target, dataEnd), startIdx, currentPlan), currentPlan.years, rA);
     if (scroll) scrollToSection('plan-detail');
 }
 
