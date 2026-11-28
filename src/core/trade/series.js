@@ -5,6 +5,7 @@
  */
 
 import { lowerBound, addYears } from '../plan/calendar.js';
+import { LISTING_631L } from '../marketDates.js';
 
 export const MIN_START_IDX = 40; // 起始日前至少 40 個交易日（供 20MA）
 const MA_DAYS = 20;
@@ -36,6 +37,15 @@ export function startRange(series) {
     const lb = lowerBound(dates, limit);
     const hi = dates[lb] === limit ? lb : lb - 1;
     return hi >= MIN_START_IDX ? { lo: MIN_START_IDX, hi } : null;
+}
+
+// [startIdx, endIdx] 內日期早於 00631L 上市日（價格為推算值）的交易日占比（0～1）；空區間回傳 0
+export function simulatedShare(series, startIdx, endIdx) {
+    const n = endIdx - startIdx + 1;
+    if (n <= 0) return 0;
+    let sim = 0;
+    for (let k = startIdx; k <= endIdx; k++) if (series.dates[k] < LISTING_631L) sim++;
+    return sim / n;
 }
 
 // 隨機抽起始日索引（rand 可注入供測試）；無可用範圍回傳 null

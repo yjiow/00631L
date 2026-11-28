@@ -8,6 +8,8 @@ import { fmtMoney, fmtRate, ym, signClass } from './planFormat.js';
 import { daysBetween } from '../../core/plan/calendar.js';
 import { aStatRows, aLineData } from './rollingA.js';
 import { median } from './planDiff.js';
+import { rollingSimShare } from '../../core/plan/simulatedShare.js';
+import { LISTING_631L, LISTING_0050 } from '../../core/marketDates.js';
 
 const $ = id => document.getElementById(id);
 
@@ -100,8 +102,8 @@ export function renderCompare(items) {
     }).join('');
 }
 
-// rs：simulateRolling 結果；years：模擬年數；dataEnd：資料截止日；handler(startIdx)：選中起點時呼叫；預設選中位數
-export function renderRolling(rs, years, dataEnd, handler) {
+// rs：simulateRolling 結果；years：模擬年數；dataEnd：資料截止日；dates：標的交易日陣列（對應 rs 的 startIdx）；handler(startIdx)：選中起點時呼叫；預設選中位數
+export function renderRolling(rs, years, dataEnd, handler, dates, target = '00631L') {
     results = rs;
     // 依結果排序：期末資產優先；相同時（常見於資金斷鏈皆為 0）以撐過的天數為次要依據，讓斷鏈快慢排得出順序；
     // 連撐過天數都相同，再以投入金額排序（投入越多、結果一樣差，排名視為越差）
@@ -123,6 +125,13 @@ export function renderRolling(rs, years, dataEnd, handler) {
     const xirrMedian = median(rs.map(r => r.xirr ?? -1));
     $('rs-xirr').textContent = fmtRate(xirrMedian);
     $('rs-xirr').className = signClass(xirrMedian);
+
+    // 標的上市前起跑的起點占比（含推算價格）；沒給 dates 或 0% 時整行隱藏
+    const sim = $('rolling-sim');
+    const is0050 = target === '0050';
+    const pct = dates ? Math.round(rollingSimShare(rs, dates, is0050 ? LISTING_0050 : LISTING_631L).share * 100) : 0;
+    sim.hidden = pct === 0;
+    sim.textContent = `${pct}% 的起點在 ${is0050 ? '0050' : '00631L'} 上市前起跑，結果含推算價格`;
 
     renderAExtras();
     select(PICKS.median());

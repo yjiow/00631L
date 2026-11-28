@@ -76,6 +76,11 @@ await open(1440);
 await check('首頁載入：統計卡與圖表有內容', async () => {
     await waitFor(`$('roi-00631')?.textContent.trim() && $('mainChart')`, '首頁統計卡 / 圖表');
 });
+await check('首頁：預設區間 00631L 卡有「含推算期間」，起日改到上市日後消失', async () => {
+    await waitFor(`vis($('sim-00631')) && $('sim-00631').textContent.includes('含推算期間')`, '含推算期間標籤');
+    await ev(`document.querySelector('.year-quick-btn[data-start="2020"][data-start-date]').click()`);
+    await waitFor(`!vis($('sim-00631')) && !vis($('sim-5050')) && !vis($('sim-0050'))`, '標籤隨區間消失');
+});
 await check('首頁「分享本站」：複製網址並顯示提示', async () => {
     await ev(`$('home-share').click()`);
     await waitFor(`vis($('home-share-feedback')) && $('home-share-feedback').textContent.includes('已複製')`, '已複製提示');
@@ -92,6 +97,9 @@ await goView('plan');
 await waitFor(`$('rs-success')?.textContent.trim()`, '投資計畫預設結果');
 await check('投資計畫：預設結果（統計卡、滾動分布圖）', async () => {
     await waitFor(`$('chartRolling') && $('rs-median').textContent.trim() && $('rs-xirr').textContent.trim()`, '統計卡');
+});
+await check('投資計畫：分布區顯示「上市前起跑」占比說明', async () => {
+    await waitFor(`vis($('rolling-sim')) && $('rolling-sim').textContent.includes('上市前起跑')`, '上市前起跑說明');
 });
 await check('投資計畫：改年數 7 → 開始模擬 → 結果隨之更新', async () => {
     const before = await ev(`$('rolling-desc').textContent`);
@@ -192,6 +200,11 @@ await check('自主實戰：開始遊戲 → 第 1 天，畫面不含年月日',
     if (hit) throw new Error('畫面出現日期文字：' + hit);
     if (!(await ev(`document.querySelectorAll('#trade-play canvas').length === 3`))) throw new Error('圖表數量不是 3');
 });
+await check('自主實戰：畫面沒有「推薦策略」字樣（已改名「對照策略」）', async () => {
+    const t = await ev(`$('trade-app').innerText`);
+    if (t.includes('推薦策略')) throw new Error('仍出現「推薦策略」');
+    if (!t.includes('對照策略')) throw new Error('找不到「對照策略」');
+});
 await check('自主實戰：買進操作成功（第 1 天 → 第 2 天，持股更新）', async () => {
     await tradeAct({ 'trade-buy50': '100' }, '2');
     await waitFor(`$('trade-compare').textContent.includes('100 股')`, '操作者持有 0050 100 股');
@@ -232,6 +245,10 @@ await check('自主實戰：結算揭曉真實日期，重新整理後仍為結�
     await sleep(600);
     await goView('trade');
     await waitFor(`vis($('trade-result'))`, '還原後仍為結算畫面');
+});
+await check('自主實戰：結算畫面顯示推算價格占比', async () => {
+    const txt = await ev(`$('trade-result').innerText`);
+    if (!/\d+% 的交易日是推算價格/.test(txt)) throw new Error('結算畫面未顯示推算價格占比');
 });
 await check('自主實戰：再玩一次回開局並清除存檔', async () => {
     await ev(`$('trade-again').click()`);

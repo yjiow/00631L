@@ -280,13 +280,14 @@
             <span class="plan-dataend-note" id="rolling-infl-note"></span>
         </div>
         <div class="plan-stats">
-            <div class="data-box"><label>資金不斷鏈機率</label><span id="rs-success">---</span></div>
+            <div class="data-box"><label>歷史不斷鏈比例</label><span id="rs-success">---</span></div>
             <div class="data-box"><label>期末資產 最差</label><span id="rs-worst">---</span></div>
             <div class="data-box"><label>期末資產 中位</label><span id="rs-median">---</span></div>
             <div class="data-box"><label>期末資產 最好</label><span id="rs-best">---</span></div>
             <div class="data-box"><label>年化報酬 XIRR 中位</label><span id="rs-xirr">---</span></div>
         </div>
         <div id="rolling-compare" class="plan-compare"></div>
+        <div id="rolling-sim" class="plan-compare" hidden></div><!-- 起點含推算價格的占比（rollingPanel.js） -->
         <div class="plan-toolbar">
             <div class="plan-seg" id="rolling-sort">
                 <button type="button" data-sort="time" class="active">依時間</button>
@@ -301,7 +302,7 @@
         <div class="chart-wrapper">
             <canvas id="chartRolling"></canvas>
         </div>
-        <p class="chart-note">點擊長條查看該起點明細 ※ 歷史回測不代表未來績效</p>
+        <p class="chart-note">點擊長條查看該起點明細 ※ 歷史回測不代表未來績效；槓桿 ETF 長期盤整有耗損，歷史最大回撤曾達約 −90%（含推算期）。</p>
     </div>
 
     <!-- 明細 -->

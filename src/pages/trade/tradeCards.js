@@ -4,6 +4,7 @@
  */
 
 import { fmtYuan, fmtRate, signClass, ymd } from '../plan/planFormat.js';
+import { simulatedShare } from '../../core/trade/series.js';
 
 const $ = id => document.getElementById(id);
 const sharesText = n => n.toLocaleString('en-US') + ' 股';
@@ -30,7 +31,7 @@ export function renderCompare(game) {
     const { a, b } = game.snapshot();
     $('trade-compare').innerHTML = `<div class="panel-title">兩組對照</div>
         <table class="trade-table trade-compare-table">
-            <thead><tr><th></th><th>操作者</th><th>推薦策略${b.broke ? '<span class="trade-tag trade-tag-warn">斷鏈</span>' : ''}<small>50/50 · 20%</small></th></tr></thead>
+            <thead><tr><th></th><th>操作者</th><th>對照策略${b.broke ? '<span class="trade-tag trade-tag-warn">斷鏈</span>' : ''}<small>50/50 · 20%</small></th></tr></thead>
             <tbody>
                 ${trow('總資產', fmtYuan(a.value), fmtYuan(b.value))}
                 ${trow('淨投入', fmtYuan(a.invested), fmtYuan(b.invested))}
@@ -52,12 +53,13 @@ export function renderResult(game, onAgain) {
     const { a, b } = game.snapshot();
     const { dates } = game.series;
     const ra = Math.round(a.value), rb = Math.round(b.value);
-    const verdict = ra === rb ? '平手' : ra > rb ? '操作者勝' : '對照組（推薦策略）勝';
+    const verdict = ra === rb ? '平手' : ra > rb ? '操作者勝' : '對照組（對照策略）勝';
     const line = (label, fa, fb) => `<tr><td>${label}</td><td>${fa}</td><td>${fb}</td></tr>`;
     const el = $('trade-result');
     el.innerHTML = `<div class="panel-title">結算</div>
         <div class="trade-verdict">${verdict}</div>
         <p class="trade-desc">真實期間：${ymd(dates[game.startIdx])} ～ ${ymd(dates[game.endIdx])}（共 ${game.day} 個交易日）</p>
+        <p class="trade-desc">這局有 ${Math.round(simulatedShare(game.series, game.startIdx, game.endIdx) * 100)}% 的交易日是推算價格（00631L 上市前）</p>
         <div class="trade-table-wrap"><table class="trade-table">
             <thead><tr><th></th><th>操作者</th><th>對照組${b.broke ? '（資金斷鏈）' : ''}</th></tr></thead>
             <tbody>

@@ -5,6 +5,8 @@
 
 import Chart from 'chart.js/auto'; // npm 套件（版本見 package.json），auto 自動註冊全部圖表元件
 import { neonScales, glassTooltip, neonLine, downsampleIdx, periodLast } from './chartTheme.js';
+import { simBandPlugin } from './simBandPlugin.js';
+import { LISTING_631L } from '../core/marketDates.js';
 
 // ===== 策略回測圖表（首頁）=====
 
@@ -23,6 +25,7 @@ export function renderBacktestChart(labels, vals00631, vals5050, vals0050) {
 
     backtestChart = new Chart(canvas.getContext('2d'), {
         type: 'line',
+        plugins: [simBandPlugin],
         data: {
             labels,
             datasets: [
@@ -37,7 +40,8 @@ export function renderBacktestChart(labels, vals00631, vals5050, vals0050) {
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend:  { labels: { color: '#9DA7B3', font: { family: 'Share Tech Mono' }, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8 } },
-                tooltip: glassTooltip
+                tooltip: glassTooltip,
+                simBand: { boundary: LISTING_631L, text: '推算期（00631L 上市前）' } // 起日早於上市日才畫
             },
             scales: neonScales(value => value.toLocaleString()),
             animation: { duration: 400, easing: 'easeOutQuart' }

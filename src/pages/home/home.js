@@ -10,7 +10,7 @@ import { renderBacktestChart, render5050DetailChart } from '../../charts/chartRe
 import { renderWinRate } from './winRatePanel.js';
 import { initFloatAutoHide } from '../../ui/floatAutoHide.js';
 import { initHomeShare } from './homeShare.js';
-import { AI_CUTOFF } from '../../core/marketDates.js';
+import { AI_CUTOFF, LISTING_631L, LISTING_0050, hasSimulatedPeriod } from '../../core/marketDates.js';
 
 let currentStartDate = null;
 let currentEndDate   = null;
@@ -41,6 +41,13 @@ const CROWN_SVG =
 
 function addCrown(id) {
     $(id).insertAdjacentHTML('beforeend', CROWN_SVG);
+}
+
+// 區間起日早於標的上市日時，卡片標題旁顯示「含推算期間」
+function renderSimTags() {
+    $('sim-00631').hidden = !hasSimulatedPeriod(currentStartDate, LISTING_631L);
+    $('sim-5050').hidden  = !hasSimulatedPeriod(currentStartDate, LISTING_631L);
+    $('sim-0050').hidden  = !hasSimulatedPeriod(currentStartDate, LISTING_0050);
 }
 
 function renderDashboard(s00631, s5050, s0050) {
@@ -119,6 +126,7 @@ async function loadRange(startYear, endYear, startDate, endDate) {
     if (!s00631.length || !s0050.length) return;
     renderDashboard(s00631, calc5050(rows, 't2_close'), s0050);
     renderAiCompare(rows);
+    renderSimTags();
 }
 
 // MM/DD 點擊編輯

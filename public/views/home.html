@@ -15,7 +15,7 @@
 <!-- 三大策略績效卡 -->
 <div class="dashboard-grid">
     <div class="panel-card">
-        <div class="stat-label">元大台灣50正2 (00631L)</div>
+        <div class="stat-label">元大台灣50正2 (00631L) <span class="sim-tag" id="sim-00631" hidden>含推算期間</span></div>
         <div class="card-metrics">
             <div class="metric-item">
                 <div class="metric-label">累積報酬</div>
@@ -23,14 +23,14 @@
                 <div id="final-00631" class="stat-final"></div>
             </div>
             <div class="metric-item">
-                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。</span></span></div>
+                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。例：−50% 代表 100 萬最多剩 50 萬。</span></span></div>
                 <div id="mdd-00631" class="stat-value negative">---</div>
                 <div id="mdd-period-00631" class="stat-final"></div>
             </div>
         </div>
     </div>
     <div class="panel-card">
-        <div class="stat-label">00631L 50/50 20%再平衡策略 <button class="magnify-btn" id="btn-5050-info" title="策略說明"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button></div>
+        <div class="stat-label">00631L 50/50 20%再平衡策略 <span class="sim-tag" id="sim-5050" hidden>含推算期間</span> <button class="magnify-btn" id="btn-5050-info" title="策略說明"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button></div>
         <div class="card-metrics">
             <div class="metric-item">
                 <div class="metric-label">累積報酬</div>
@@ -38,14 +38,14 @@
                 <div id="final-5050" class="stat-final"></div>
             </div>
             <div class="metric-item">
-                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。</span></span></div>
+                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。例：−50% 代表 100 萬最多剩 50 萬。</span></span></div>
                 <div id="mdd-5050" class="stat-value negative">---</div>
                 <div id="mdd-period-5050" class="stat-final"></div>
             </div>
         </div>
     </div>
     <div class="panel-card">
-        <div class="stat-label">元大台灣50 (0050) 含息</div>
+        <div class="stat-label">元大台灣50 (0050) 含息 <span class="sim-tag" id="sim-0050" hidden>含推算期間</span></div>
         <div class="card-metrics">
             <div class="metric-item">
                 <div class="metric-label">累積報酬</div>
@@ -53,7 +53,7 @@
                 <div id="final-0050" class="stat-final"></div>
             </div>
             <div class="metric-item">
-                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。</span></span></div>
+                <div class="metric-label">最大回撤 (MDD) <span class="tooltip-wrap"><span class="tooltip-icon">!</span><span class="tooltip-text">資產從最高點跌落至最低點的最大幅度與區間日期。例：−50% 代表 100 萬最多剩 50 萬。</span></span></div>
                 <div id="mdd-0050" class="stat-value negative">---</div>
                 <div id="mdd-period-0050" class="stat-final"></div>
             </div>
@@ -69,12 +69,12 @@
     <div class="chart-wrapper">
         <canvas id="mainChart"></canvas>
     </div>
-    <p class="chart-note">※ 歷史回測不代表未來績效</p>
+    <p class="chart-note">※ 歷史回測不代表未來績效；此頁未計交易成本，上市前為推算值（未計管理費與追蹤誤差，實際會較低）。</p>
 
     <div class="features">
         <div class="feature-item">
             <h3>複利演算</h3>
-            <p>自動計算每日漲跌幅的連乘效果，反映最真實的長期持有表現。</p>
+            <p>自動計算每日漲跌幅的連乘效果，呈現歷史價格下的長期持有結果。</p>
         </div>
         <div class="feature-item">
             <h3>歷史回測</h3>
@@ -89,8 +89,8 @@
 
 <!-- 持有期間勝率（winRatePanel.js，整塊可移除） -->
 <div class="panel-card winrate-card">
-    <div class="panel-title">持有越久，勝率越高 (HOLDING_WIN_RATE)</div>
-    <p class="winrate-sub"><span id="winratePeriod"></span><br>任一交易日進場、持有 N 年後的賺錢機率 · 區間不足 N 年顯示「—」</p>
+    <div class="panel-title">持有期間勝率 (HOLDING_WIN_RATE)</div>
+    <p class="winrate-sub"><span id="winratePeriod"></span><br>任一交易日進場、持有 N 年後的賺錢機率 · 區間不足 N 年顯示「—」<br>※ 任一交易日進場的樣本高度重疊，長年期的獨立路徑很少，勝率僅供參考。<span class="winrate-swipe">手機可左右滑動表格。</span></p>
     <div class="winrate-wrap">
         <table class="winrate-table" id="winrateTable"></table>
     </div>

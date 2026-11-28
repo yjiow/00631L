@@ -166,7 +166,7 @@ function compute(plan) {
             : { label: '資料只到 AI 行情前（2022 年底）', rs: simulateRolling(seriesOf(plan.target, AI_CUTOFF), plan) }
     ]);
     let first = true; // 初次預設選中位數時不捲動
-    renderRolling(rs, plan.years, series.dates.at(-1), idx => { showDetail(idx, !first); first = false; });
+    renderRolling(rs, plan.years, series.dates.at(-1), idx => { showDetail(idx, !first); first = false; }, series.dates, plan.target);
     renderPin();
     refreshAnchors();
     return true;
