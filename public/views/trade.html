@@ -8,13 +8,19 @@
     <section id="trade-start" class="panel-card trade-start" hidden>
         <div class="panel-title">自主實戰模擬 (TRADE_SIM)</div>
         <p class="trade-desc">被丟到歷史上隨機的一天，逐日決定現金加減碼與買賣 0050 / 00631L，並與「對照策略」（50/50、20% 再平衡）比較。遊戲中不顯示日期，結算時才揭曉。00631L 上市前的價格為推算值。</p>
+        <p class="trade-desc trade-goal">目標：用你的操作，贏過 50/50、20% <span data-term="rebalance">再平衡</span>的對照策略。</p>
+        <ol class="trade-steps" aria-label="3 步驟玩法">
+            <li>看兩檔股價圖與均線，決定今天要不要買賣。</li>
+            <li>輸入買賣股數或現金加減碼（可用快捷鈕），選要跳過幾天，按「執行並前進」。</li>
+            <li>隨時可按「結算」，看你有沒有贏過對照策略。</li>
+        </ol>
         <div class="plan-form trade-start-form">
             <label class="plan-field">
                 <span>初始金額（元，下限 100,000）</span>
                 <input type="text" id="trade-initial" data-money inputmode="numeric" value="1,000,000" autocomplete="off">
             </label>
             <label class="plan-field">
-                <span>手續費折扣（折）</span>
+                <span>手續費折扣（折）<small class="trade-field-hint">（不確定就維持 6）</small></span>
                 <input type="number" id="trade-discount" min="0.1" max="10" step="0.1" value="6">
             </label>
         </div>
@@ -42,7 +48,7 @@
                         </span>
                     </div>
                 </div>
-                    <p id="trade-day1-note" class="trade-desc trade-note" hidden>初始金額已入帳為現金。</p>
+                    <p id="trade-day1-note" class="trade-desc trade-note" hidden>初始金額已入帳為現金。先試試「各半買」，再按「1 月」往前走看看。</p>
                     <div class="trade-prices">
                         <div>00631L <b id="trade-px-631">—</b></div>
                         <div>0050 <b id="trade-px-50">—</b></div>
@@ -86,12 +92,12 @@
 
             <div class="trade-charts">
                 <div class="panel-card trade-chart-card">
-                    <div class="panel-title">00631L 近 22 日 + 5/20MA（還原價）</div>
+                    <div class="panel-title">00631L 近 22 日 + <span data-term="ma">5/20MA</span>（<span data-term="adjprice">還原價</span>）</div>
                     <div class="trade-chart-box"><canvas id="trade-chart-631"></canvas></div>
                     <div class="trade-ma-gap" id="trade-gap-631"></div>
                 </div>
                 <div class="panel-card trade-chart-card">
-                    <div class="panel-title">0050 近 22 日 + 5/20MA（還原價）</div>
+                    <div class="panel-title">0050 近 22 日 + <span data-term="ma">5/20MA</span>（<span data-term="adjprice">還原價</span>）</div>
                     <div class="trade-chart-box"><canvas id="trade-chart-50"></canvas></div>
                     <div class="trade-ma-gap" id="trade-gap-50"></div>
                 </div>

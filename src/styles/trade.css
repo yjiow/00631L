@@ -7,6 +7,9 @@
 
 .trade-desc { color: var(--text-secondary); line-height: 1.7; font-size: 0.9rem; margin-bottom: 16px; }
 .trade-note { font-size: 0.8rem; color: var(--text-muted); margin: 12px 0 16px; }
+.trade-goal { margin-bottom: 8px; }
+.trade-steps { margin: 0 0 16px; padding-left: 1.4em; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.7; }
+.plan-field span small.trade-field-hint { font-size: 0.75rem; color: var(--text-muted); }
 .trade-error { color: var(--color-up); font-size: 0.9rem; margin-bottom: 12px; }
 .trade-btn-wide { margin-top: 8px; }
 .trade-start-form { margin-bottom: 4px; }
@@ -79,6 +82,10 @@
 
 /* 結算 */
 .trade-verdict { font-family: var(--font-num); font-size: 1.6rem; color: var(--neon-blue); margin-bottom: 8px; }
+.trade-notes { margin: 0 0 14px; padding-left: 1.2em; color: var(--text-secondary); font-size: 0.82rem; line-height: 1.7; }
+.trade-result-actions { display: flex; flex-direction: column; gap: 8px; }
+.trade-result-actions .trade-btn-wide { margin-top: 0; }
+.trade-btn-link { display: block; padding: 10px 14px; text-align: center; text-decoration: none; }
 .trade-table-wrap { overflow-x: auto; margin-bottom: 16px; }
 .trade-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .trade-table th, .trade-table td { padding: 8px 10px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }

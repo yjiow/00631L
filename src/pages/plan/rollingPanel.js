@@ -8,6 +8,7 @@ import { fmtMoney, fmtRate, ym, signClass } from './planFormat.js';
 import { daysBetween } from '../../core/plan/calendar.js';
 import { aStatRows, aLineData } from './rollingA.js';
 import { median } from './planDiff.js';
+import { rollingConclusion } from './rollingConclusion.js';
 import { rollingSimShare } from '../../core/plan/simulatedShare.js';
 import { LISTING_631L, LISTING_0050 } from '../../core/marketDates.js';
 
@@ -125,6 +126,15 @@ export function renderRolling(rs, years, dataEnd, handler, dates, target = '0063
     const xirrMedian = median(rs.map(r => r.xirr ?? -1));
     $('rs-xirr').textContent = fmtRate(xirrMedian);
     $('rs-xirr').className = signClass(xirrMedian);
+
+    // 白話結論（撐過的最差：只看沒斷鏈的起點）
+    const okFinals = rs.filter(r => !r.brokeDate).map(r => r.final);
+    const conclusion = $('rolling-conclusion');
+    conclusion.textContent = rollingConclusion({
+        total: rs.length, ok, worst: byValue[0].final, median: median(rs.map(r => r.final)), best: byValue.at(-1).final,
+        okWorst: okFinals.length ? Math.min(...okFinals) : 0
+    }, fmtMoney);
+    conclusion.hidden = !conclusion.textContent;
 
     // 標的上市前起跑的起點占比（含推算價格）；沒給 dates 或 0% 時整行隱藏
     const sim = $('rolling-sim');

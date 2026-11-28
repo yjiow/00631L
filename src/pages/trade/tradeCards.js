@@ -5,12 +5,12 @@
 
 import { fmtYuan, fmtRate, signClass, ymd } from '../plan/planFormat.js';
 import { simulatedShare } from '../../core/trade/series.js';
+import { mddText, rateText } from './tradeFmt.js';
+import { settlementNotes } from './tradeNotes.js';
 
 const $ = id => document.getElementById(id);
 const sharesText = n => n.toLocaleString('en-US') + ' 股';
-const mddText = v => (Math.abs(v) < 0.05 ? 0 : v).toFixed(1) + '%'; // 避免顯示 -0.0%
 const signed = (v, text) => (v > 0 && !/^[+-]?0(\.0%| 元)?$/.test(text) ? '+' : '') + text;
-const rateText = r => { const t = fmtRate(r); return t === '-0.0%' ? '0.0%' : t; }; // 避免 -0.0%
 
 const REASON = { rebalance: '再平衡', shortfall: '減碼賣股補足' };
 const trow = (label, va, vb, ca = '', cb = '') => `<tr><td>${label}</td><td class="${ca}">${va}</td><td class="${cb}">${vb}</td></tr>`;
@@ -60,6 +60,7 @@ export function renderResult(game, onAgain) {
         <div class="trade-verdict">${verdict}</div>
         <p class="trade-desc">真實期間：${ymd(dates[game.startIdx])} ～ ${ymd(dates[game.endIdx])}（共 ${game.day} 個交易日）</p>
         <p class="trade-desc">這局有 ${Math.round(simulatedShare(game.series, game.startIdx, game.endIdx) * 100)}% 的交易日是推算價格（00631L 上市前）</p>
+        <ul class="trade-notes">${settlementNotes(a, b).map(s => `<li>${s}</li>`).join('')}</ul>
         <div class="trade-table-wrap"><table class="trade-table">
             <thead><tr><th></th><th>操作者</th><th>對照組${b.broke ? '（資金斷鏈）' : ''}</th></tr></thead>
             <tbody>
@@ -70,6 +71,9 @@ export function renderResult(game, onAgain) {
                 ${line('累計手續費與證交稅', fmtYuan(a.costTotal), fmtYuan(b.costTotal))}
             </tbody>
         </table></div>
-        <button type="button" id="trade-again" class="btn-primary trade-btn-wide">再玩一次</button>`;
+        <div class="trade-result-actions">
+            <button type="button" id="trade-again" class="btn-primary trade-btn-wide">再玩一次</button>
+            <a id="trade-to-plan" class="trade-btn trade-btn-link" href="?view=plan" data-view="plan">用投資計畫看長期結果</a>
+        </div>`;
     $('trade-again').addEventListener('click', onAgain);
 }

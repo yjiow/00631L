@@ -8,6 +8,7 @@ import { updateNavIndicator } from './ui/navIndicator.js';
 import { initDataStatus } from './pages/about/dataStatus.js';
 import { initPlan } from './pages/plan/plan.js';
 import { initTrade } from './pages/trade/trade.js';
+import { initGlossary, closeGlossary } from './ui/glossary.js';
 
 import { parseView, viewUrl } from './ui/routeParams.js';
 
@@ -47,6 +48,7 @@ export async function navigateTo(viewName, { push = true } = {}) {
             if (push) history[viewName === currentView ? 'replaceState' : 'pushState'](null, '', viewUrl(viewName));
             currentView = viewName;
             // 2. 注入新視圖
+            closeGlossary();
             viewStage.innerHTML = html;
             window.scrollTo(0, 0); // 換頁回到頂端
             document.title = TITLES[viewName] ?? TITLES.home;
@@ -79,6 +81,7 @@ export async function navigateTo(viewName, { push = true } = {}) {
             } else if (viewName === 'about') {
                 initDataStatus();
             }
+            initGlossary(viewStage); // 掃描 [data-term] 補「?」名詞說明
         }, prefersReducedMotion() ? 0 : 150);
 
     } catch (err) {

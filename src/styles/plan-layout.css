@@ -196,3 +196,10 @@
     .plan-stats .data-box span { font-size: 1rem; }
 }
 
+
+/* 滾動分布：白話結論與導流連結 */
+.rolling-conclusion { margin: 0 0 14px; padding: 10px 14px; border-left: 3px solid var(--neon-blue); background: rgba(0, 210, 255, 0.06); font-size: 0.95rem; line-height: 1.7; color: var(--text-light); }
+.rolling-conclusion[hidden] { display: none; }
+.rolling-goto { margin-top: 14px; text-align: center; font-size: 0.85rem; }
+.rolling-goto a { color: var(--neon-blue); text-decoration: none; }
+.rolling-goto a:hover { text-decoration: underline; }

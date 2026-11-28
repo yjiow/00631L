@@ -86,6 +86,27 @@ await check('首頁「分享本站」：複製網址並顯示提示', async () =
     await waitFor(`vis($('home-share-feedback')) && $('home-share-feedback').textContent.includes('已複製')`, '已複製提示');
     if (!(await ev(`window.__copied`)).startsWith(BASE.replace(/\/$/, ''))) throw new Error('複製內容不是本站網址');
 });
+await check('首頁：「正2」旁「?」點擊顯示說明，再點或按 Esc 關閉', async () => {
+    const hint = `document.querySelector('.hero-lead .term-hint')`;
+    await waitFor(hint, '「正2」旁的「?」');
+    const shown = `vis($('term-bubble')) && $('term-bubble').textContent.includes('波動衰減')`;
+    await ev(`${hint}.click()`);
+    await waitFor(shown, '說明泡泡');
+    await ev(`${hint}.click()`);
+    await waitFor(`!vis($('term-bubble'))`, '再點關閉');
+    await ev(`${hint}.click()`);
+    await waitFor(shown, '再次開啟');
+    await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))`);
+    await waitFor(`!vis($('term-bubble'))`, 'Esc 關閉');
+});
+await check('首頁：兩個主按鈕「規劃我的退休計畫」「玩玩看：自主實戰」導向對應頁', async () => {
+    for (const [text, view] of [['規劃我的退休計畫', 'plan'], ['玩玩看：自主實戰', 'trade']]) {
+        await ev(`[...document.querySelectorAll('.hero-cta a')].find(a => a.textContent.trim() === '${text}').click()`);
+        await waitFor(`location.search.includes('view=${view}')`, `網址變為 ?view=${view}`);
+        await goView('home');
+        await waitFor(`$('roi-00631')`, '回到首頁');
+    }
+});
 await check('導覽切換：策略概覽 / 投資計畫 / 自主實戰 / 關於我 皆可進入', async () => {
     for (const [view, sel] of [['plan', '#plan-form'], ['trade', '.panel-card, .panel-title'], ['about', '.panel-card, .panel-title'], ['home', '#mainChart']]) {
         await goView(view);
@@ -100,6 +121,15 @@ await check('投資計畫：預設結果（統計卡、滾動分布圖）', asyn
 });
 await check('投資計畫：分布區顯示「上市前起跑」占比說明', async () => {
     await waitFor(`vis($('rolling-sim')) && $('rolling-sim').textContent.includes('上市前起跑')`, '上市前起跑說明');
+});
+await check('投資計畫：分布區顯示白話結論（「個起點裡」）', async () => {
+    await waitFor(`vis($('rolling-conclusion')) && $('rolling-conclusion').textContent.includes('個起點裡')`, '白話結論');
+});
+await check('投資計畫：導流連結進到自主實戰', async () => {
+    await ev(`document.querySelector('.rolling-goto a').click()`);
+    await waitFor(`location.search.includes('view=trade') && document.title.startsWith('自主實戰模擬')`, '進入自主實戰');
+    await goView('plan');
+    await waitFor(`$('rs-success')?.textContent.trim() && $('rs-success').textContent !== '---'`, '回到投資計畫結果');
 });
 await check('投資計畫：改年數 7 → 開始模擬 → 結果隨之更新', async () => {
     const before = await ev(`$('rolling-desc').textContent`);
@@ -190,6 +220,16 @@ await goView('trade');
 await check('自主實戰：開局頁載入（初始金額 / 折扣預設值）', async () => {
     await waitFor(`vis($('trade-start')) && $('trade-initial').value === '1,000,000' && $('trade-discount').value === '6'`, '開局畫面與預設值');
 });
+await check('自主實戰：開局有「3 步驟玩法」與折扣提示，「再平衡」旁「?」可開說明', async () => {
+    const t = await ev(`$('trade-start').innerText`);
+    for (const s of ['看兩檔股價圖與均線', '輸入買賣股數或現金加減碼', '隨時可按「結算」', '不確定就維持 6']) {
+        if (!t.includes(s)) throw new Error('開局畫面缺少：' + s);
+    }
+    if ((await ev(`document.querySelectorAll('#trade-start .trade-steps li').length`)) !== 3) throw new Error('玩法步驟不是 3 項');
+    await ev(`document.querySelector('#trade-start [data-term="rebalance"] + .term-hint').click()`);
+    await waitFor(`vis($('term-bubble')) && $('term-bubble').textContent.includes('漲多了賣一點')`, '再平衡說明泡泡');
+    await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))`);
+});
 await check('自主實戰：初始金額低於下限會提示、不開局', async () => {
     await ev(`(()=>{const i=$('trade-initial');i.value='50,000';i.dispatchEvent(new Event('input',{bubbles:true}));$('trade-begin').click()})()`);
     await waitFor(`vis($('trade-start-error')) && vis($('trade-start'))`, '下限錯誤提示');
@@ -198,6 +238,7 @@ await check('自主實戰：初始金額低於下限會提示、不開局', asyn
 await check('自主實戰：開始遊戲 → 第 1 天，畫面不含年月日', async () => {
     await startTrade();
     if (!(await ev(`$('trade-day1-note') && vis($('trade-day1-note'))`))) throw new Error('第 1 天未標註初始金額入帳');
+    if (!(await ev(`$('trade-day1-note').textContent.includes('各半買')`))) throw new Error('第 1 天提示缺少「各半買」');
     const hit = await ev(`(document.getElementById('view-stage').innerText.match(new RegExp(${JSON.stringify(DATE_SRC)})) || [])[0] || ''`);
     if (hit) throw new Error('畫面出現日期文字：' + hit);
     if (!(await ev(`document.querySelectorAll('#trade-play canvas').length === 3`))) throw new Error('圖表數量不是 3');
@@ -252,6 +293,18 @@ await check('自主實戰：結算畫面顯示推算價格占比', async () => {
     const txt = await ev(`$('trade-result').innerText`);
     if (!/\d+% 的交易日是推算價格/.test(txt)) throw new Error('結算畫面未顯示推算價格占比');
 });
+await check('自主實戰：結算有白話說明三句', async () => {
+    const txt = await ev(`$('trade-result').innerText`);
+    for (const s of ['最終資產：你', '最大回撤：你', '交易與費用：你']) {
+        if (!txt.includes(s)) throw new Error('結算缺少：' + s);
+    }
+});
+await check('自主實戰：結算「用投資計畫看長期結果」導向 ?view=plan', async () => {
+    await ev(`$('trade-to-plan').click()`);
+    await waitFor(`location.search.includes('view=plan')`, '網址變 ?view=plan');
+    await goView('trade');
+    await waitFor(`vis($('trade-result'))`, '回自主實戰仍為結算畫面');
+});
 await check('自主實戰：再玩一次回開局並清除存檔', async () => {
     await ev(`$('trade-again').click()`);
     await waitFor(`vis($('trade-start'))`, '開局畫面');
@@ -280,8 +333,21 @@ await check('各頁沒有水平溢出（不可左右捲動）', async () => {
         if (w > 390 + 1) throw new Error(`${view} 頁寬 ${w} 超出手機寬度 390`);
     }
 });
+await check('手機版首頁：「?」泡泡不超出視窗、頁面不變寬', async () => {
+    await goView('home');
+    await waitFor(`document.querySelector('.hero-lead .term-hint')`, '「?」按鈕');
+    await ev(`document.querySelector('.hero-lead .term-hint').click()`);
+    await waitFor(`vis($('term-bubble'))`, '說明泡泡');
+    const r = await ev(`(()=>{const b=$('term-bubble').getBoundingClientRect();return {l:b.left,r:b.right,w:document.documentElement.scrollWidth}})()`);
+    if (r.l < 0 || r.r > 390 || r.w > 391) throw new Error(`泡泡 ${r.l}~${r.r}、頁寬 ${r.w}`);
+    await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))`);
+});
 await check('自主實戰手機版：進行中、結算畫面無水平溢出', async () => {
     await goView('trade');
+    await waitFor(`vis($('trade-start'))`, '開局畫面');
+    await sleep(300);
+    const w0 = await ev(`document.documentElement.scrollWidth`);
+    if (w0 > 391) throw new Error(`開局頁寬 ${w0} 超出 390`);
     await startTrade();
     await tradeAct({ 'trade-buy50': '100', 'trade-skip': '3' }, '4');
     await sleep(500);

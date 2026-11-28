@@ -7,6 +7,7 @@ import { DEFAULT_PLAN } from '../../core/plan/defaults.js';
 export const PRESETS = [
     {
         name: '小額定投',
+        brief: '剛出社會、本金不多：靠每月定額投入，讓複利慢慢滾大。',
         desc: '您剛出社會，本金不多，但還有時間優勢：靠每月定額投入，讓複利慢慢滾大。',
         plan: {
             ...DEFAULT_PLAN, initialCapital: 30_000, stockRatio: 0.8, years: 20,
@@ -15,6 +16,7 @@ export const PRESETS = [
     },
     {
         name: '收支打平',
+        brief: '穩定上班族：滾動信貸做長期投資，用 50/50 與 20% 門檻再平衡累積退休金。',
         desc: '您是信用良好的穩定上班族，想持續滾動信貸做長期投資：透過 50/50 策略與 20% 門檻再平衡，幫自己額外累積退休金。',
         plan: {
             ...DEFAULT_PLAN, initialCapital: 1_000_000, stockRatio: 0.5, years: 20,
@@ -36,6 +38,7 @@ export const PRESETS = [
     },
     {
         name: '差額提領',
+        brief: '已退休、退休金不夠生活：每月提領差額，看資產能撐多久、會不會提前用完。',
         desc: '您已退休、手上有一筆資產，但退休金不夠生活：每月從資產提領差額，看看這筆錢能撐多久、會不會提前用完。',
         plan: {
             ...DEFAULT_PLAN, initialCapital: 5_000_000, stockRatio: 0.5, years: 20,
@@ -48,7 +51,9 @@ export const PRESETS = [
 export function initPresets(container, onApply) {
     const buttons = container.querySelector('[data-role=buttons]');
     const desc = container.querySelector('[data-role=desc]');
-    buttons.innerHTML = PRESETS.map((p, i) => `<button type="button" class="plan-preset-btn" data-i="${i}">${p.name}</button>`).join('');
+    // 每個情境：按鈕 + 下方一行濃縮說明（brief 為固定文案）
+    buttons.innerHTML = PRESETS.map((p, i) =>
+        `<div class="plan-preset-item"><button type="button" class="plan-preset-btn" data-i="${i}">${p.name}</button><p class="plan-presets-desc">${p.brief}</p></div>`).join('');
     buttons.addEventListener('click', e => {
         const btn = e.target.closest('.plan-preset-btn');
         if (!btn) return;

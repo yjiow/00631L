@@ -254,3 +254,9 @@
     line-height: 1.7;
 }
 
+
+/* 範例情境：按鈕 + 下方一行說明 */
+.plan-presets-buttons:has(.plan-preset-item) { display: grid; grid-template-columns: repeat(3, 1fr); align-items: start; }
+.plan-preset-item { display: flex; flex-direction: column; min-width: 0; }
+.plan-preset-item .plan-preset-btn { flex: 0 0 auto; min-width: 0; padding: 6px 4px; }
+.plan-preset-item .plan-presets-desc { margin-top: 6px; font-size: 0.74rem; line-height: 1.5; }

@@ -1,0 +1,44 @@
+/* 名詞小百科（ui/glossary.js）：「?」按鈕沿用 .tooltip-icon 的色與大小，泡泡沿用 .tooltip-text 風格 */
+.term-hint {
+    font: inherit;
+    font-size: 0.72em;
+    color: var(--bg-main);
+    background: var(--neon-blue);
+    border: 0;
+    border-radius: 50%;
+    width: 1.5em;
+    height: 1.5em;
+    padding: 0;
+    margin-left: 0.4em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    user-select: none;
+    vertical-align: middle;
+    line-height: 1;
+}
+.term-hint:focus-visible { outline: 2px solid var(--neon-blue); outline-offset: 2px; }
+.term-hint[aria-expanded="true"] { box-shadow: 0 0 8px rgba(0, 210, 255, 0.6); }
+
+.term-bubble {
+    position: fixed;
+    width: max-content;
+    max-width: min(260px, calc(100vw - 16px));
+    background: rgba(26, 31, 44, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 210, 255, 0.4);
+    color: var(--text-light);
+    font-size: 0.78rem;
+    font-weight: 400;
+    line-height: 1.6;
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: 4px;
+    z-index: 300;
+}
+.term-bubble[hidden] { display: none; }
+
+/* 數字卡標籤內的術語文字沿用標籤樣式（避開 .data-box span 的數字樣式） */
+.plan-stats .data-box label [data-term],
+.data-box label [data-term] { font: inherit; color: inherit; }

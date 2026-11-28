@@ -3,6 +3,11 @@
     <h1 class="hero-title">00631L 與 0050<br><span>績效對比與策略分析</span></h1>
     <p id="typewriter-text" class="hero-typewriter"><!-- 由 JS 打字機動態填入 --></p>
     <p class="hero-desc">用 2000 年後的歷史行情，Debug 您的長期投資配置，提早規劃您的退休藍圖。</p>
+    <p class="hero-lead">如果 2000 年起一直持有 00631L（<span class="nowrap"><span data-term="lev2x">正2</span>），</span>到現在會變多少？</p>
+    <div class="hero-cta">
+        <a class="btn-primary hero-cta-btn" href="?view=plan" data-view="plan">規劃我的退休計畫</a>
+        <a class="btn-primary hero-cta-btn" href="?view=trade" data-view="trade">玩玩看：自主實戰</a>
+    </div>
     <div class="hero-share">
         <button type="button" class="hero-share-btn" id="home-share" title="分享本站">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -30,7 +35,7 @@
         </div>
     </div>
     <div class="panel-card">
-        <div class="stat-label">00631L 50/50 20%再平衡策略 <span class="sim-tag" id="sim-5050" hidden>含推算期間</span> <button class="magnify-btn" id="btn-5050-info" title="策略說明"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button></div>
+        <div class="stat-label">00631L 50/50 20%<span data-term="rebalance">再平衡策略</span> <span class="sim-tag" id="sim-5050" hidden>含推算期間</span> <button class="magnify-btn" id="btn-5050-info" title="策略說明"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button></div>
         <div class="card-metrics">
             <div class="metric-item">
                 <div class="metric-label">累積報酬</div>
@@ -69,7 +74,7 @@
     <div class="chart-wrapper">
         <canvas id="mainChart"></canvas>
     </div>
-    <p class="chart-note">※ 歷史回測不代表未來績效；此頁未計交易成本，上市前為推算值（未計管理費與追蹤誤差，實際會較低）。</p>
+    <p class="chart-note">圖例：紅＝賺、綠＝賠（台股習慣）。※ 歷史回測不代表未來績效；此頁未計交易成本，上市前為<span data-term="simulated">推算值</span>（未計管理費與追蹤誤差，實際會較低）。</p>
 
     <div class="features">
         <div class="feature-item">
@@ -138,9 +143,9 @@
             <button class="year-quick-btn year-end-btn" data-end-date="2022-12-31" title="結束於 2022/12/31，排除 2023 年起的 AI 行情">AI 行情前</button>
         </div>
     </div>
-    <button class="float-trigger">
+    <button class="float-trigger" title="改日期區間" aria-label="改日期區間">
         <span class="float-trigger-icon" aria-hidden="true"></span>
-        <span class="float-trigger-label">2000～2026</span>
+        <span class="float-trigger-hint">改日期區間：</span><span class="float-trigger-label">2000～2026</span>
     </button>
 </div>
 

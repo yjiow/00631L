@@ -118,7 +118,7 @@
 
         <!-- 4 再平衡 -->
         <section class="plan-pane" data-pane="3">
-            <p class="plan-pane-desc">把股票與現金調回「基本設定」的股票比例；以當天收盤價成交。</p>
+            <p class="plan-pane-desc"><span data-term="rebalance">再平衡</span>：把股票與現金調回「基本設定」的股票比例；以當天收盤價成交。</p>
             <div class="plan-options">
                 <label class="plan-option">
                     <input type="radio" name="rebalanceMode" value="none">
@@ -264,7 +264,7 @@
     </div>
     <!-- 分布 -->
     <div class="panel-card" id="plan-rolling">
-        <div class="panel-title">滾動起點分布 (ROLLING)</div>
+        <div class="panel-title"><span data-term="rolling">滾動起點分布</span> (ROLLING)</div>
         <p id="rolling-desc" class="plan-desc"></p>
         <div class="plan-dataend">
             <span class="plan-dataend-label">資料截止</span>
@@ -279,12 +279,13 @@
         <div class="plan-dataend" id="rolling-infl-wrap" hidden>
             <span class="plan-dataend-note" id="rolling-infl-note"></span>
         </div>
+        <p id="rolling-conclusion" class="rolling-conclusion" hidden></p>
         <div class="plan-stats">
-            <div class="data-box"><label>歷史不斷鏈比例</label><span id="rs-success">---</span></div>
+            <div class="data-box"><label><span data-term="survive">歷史不斷鏈比例</span></label><span id="rs-success">---</span></div>
             <div class="data-box"><label>期末資產 最差</label><span id="rs-worst">---</span></div>
             <div class="data-box"><label>期末資產 中位</label><span id="rs-median">---</span></div>
             <div class="data-box"><label>期末資產 最好</label><span id="rs-best">---</span></div>
-            <div class="data-box"><label>年化報酬 XIRR 中位</label><span id="rs-xirr">---</span></div>
+            <div class="data-box"><label><span data-term="xirr">年化報酬 XIRR 中位</span></label><span id="rs-xirr">---</span></div>
         </div>
         <div id="rolling-compare" class="plan-compare"></div>
         <div id="rolling-sim" class="plan-compare" hidden></div><!-- 起點含推算價格的占比（rollingPanel.js） -->
@@ -303,6 +304,7 @@
             <canvas id="chartRolling"></canvas>
         </div>
         <p class="chart-note">點擊長條查看該起點明細 ※ 歷史回測不代表未來績效；槓桿 ETF 長期盤整有耗損，歷史最大回撤曾達約 −90%（含推算期）。</p>
+        <p class="rolling-goto"><a href="?view=trade" data-view="trade">想體驗最差起點的心理壓力？去自主實戰 →</a></p>
     </div>
 
     <!-- 明細 -->
