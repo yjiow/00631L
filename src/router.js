@@ -7,6 +7,7 @@ import { initBacktest } from './pages/home/home.js';
 import { updateNavIndicator } from './ui/navIndicator.js';
 import { initDataStatus } from './pages/about/dataStatus.js';
 import { initPlan } from './pages/plan/plan.js';
+import { initTrade } from './pages/trade/trade.js';
 
 const viewStage = document.getElementById('view-stage');
 
@@ -48,6 +49,8 @@ export async function navigateTo(viewName) {
                 initBacktest();
             } else if (viewName === 'plan') {
                 initPlan();
+            } else if (viewName === 'trade') {
+                initTrade();
             } else if (viewName === 'about') {
                 initDataStatus();
             }

@@ -21,7 +21,7 @@ export function toSeries(rows, field) {
 }
 
 // 結息期序號：每年 6/21、12/21 各進一期（日期落在不同期序即跨過結息日）
-const settleKey = d => +d.slice(0, 4) * 2 + (d.slice(5) >= '12-21' ? 2 : d.slice(5) >= '06-21' ? 1 : 0);
+export const settleKey = d => +d.slice(0, 4) * 2 + (d.slice(5) >= '12-21' ? 2 : d.slice(5) >= '06-21' ? 1 : 0);
 
 // 入帳當天買進（股票比例 0 / 100% 時「達門檻才買」同「依股票比例」）
 function buyOnInflow(s, amount, price) {

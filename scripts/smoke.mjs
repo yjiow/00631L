@@ -160,6 +160,95 @@ await check('投資計畫：點分享的當下同步呼叫系統分享（iPhone 
     if (!/[?&]plan=/.test(r.sharedUrl ?? '')) throw new Error('分享連結不含 plan 參數');
 });
 
+// ---------- 自主實戰 ----------
+const DATE_SRC = '(19|20)\\d\\d[/-]\\d\\d'; // 年月日格式（遊戲中畫面不得出現）
+const tradeDay = () => ev(`$('trade-day').textContent.trim()`);
+const tradeAct = async (fields, expectDay) => {
+    await ev(`(()=>{const f=${JSON.stringify(fields)};for(const k in f){const i=$(k);i.value=f[k];i.dispatchEvent(new Event('input',{bubbles:true}))}$('trade-act').click()})()`);
+    if (expectDay) await waitFor(`$('trade-day').textContent.trim() === '${expectDay}'`, `第 ${expectDay} 天`);
+};
+const startTrade = async () => {
+    await waitFor(`vis($('trade-start'))`, '開局畫面');
+    await ev(`$('trade-begin').click()`);
+    await waitFor(`vis($('trade-play')) && $('trade-day').textContent.trim() === '1'`, '進行中第 1 天');
+    await sleep(300);
+};
+
+console.log('自主實戰（電腦版 1440）');
+await open(1440);
+await goView('trade');
+await check('自主實戰：開局頁載入（初始金額 / 折扣預設值）', async () => {
+    await waitFor(`vis($('trade-start')) && $('trade-initial').value === '1,000,000' && $('trade-discount').value === '6'`, '開局畫面與預設值');
+});
+await check('自主實戰：初始金額低於下限會提示、不開局', async () => {
+    await ev(`(()=>{const i=$('trade-initial');i.value='50,000';i.dispatchEvent(new Event('input',{bubbles:true}));$('trade-begin').click()})()`);
+    await waitFor(`vis($('trade-start-error')) && vis($('trade-start'))`, '下限錯誤提示');
+    await ev(`(()=>{const i=$('trade-initial');i.value='1,000,000';i.dispatchEvent(new Event('input',{bubbles:true}))})()`);
+});
+await check('自主實戰：開始遊戲 → 第 1 天，畫面不含年月日', async () => {
+    await startTrade();
+    if (!(await ev(`$('trade-day1-note') && vis($('trade-day1-note'))`))) throw new Error('第 1 天未標註初始金額入帳');
+    const hit = await ev(`(document.getElementById('view-stage').innerText.match(new RegExp(${JSON.stringify(DATE_SRC)})) || [])[0] || ''`);
+    if (hit) throw new Error('畫面出現日期文字：' + hit);
+    if (!(await ev(`document.querySelectorAll('#trade-play canvas').length === 3`))) throw new Error('圖表數量不是 3');
+});
+await check('自主實戰：買進操作成功（第 1 天 → 第 2 天，持股更新）', async () => {
+    await tradeAct({ 'trade-buy50': '100' }, '2');
+    await waitFor(`$('trade-compare').textContent.includes('100 股')`, '操作者持有 0050 100 股');
+});
+await check('自主實戰：不合法操作顯示錯誤、第幾天不變', async () => {
+    await tradeAct({ 'trade-sell631': '999999' });
+    await waitFor(`vis($('trade-error')) && $('trade-error').textContent.trim()`, '錯誤訊息');
+    if (await tradeDay() !== '2') throw new Error('失敗操作後天數改變');
+});
+await check('自主實戰：跳過 5 天 → 第 7 天，輸入清空', async () => {
+    await tradeAct({ 'trade-skip': '5', 'trade-sell631': '0' }, '7');
+    if (await ev(`$('trade-skip').value`) !== '1' || await ev(`$('trade-buy50').value`) !== '0') throw new Error('成功後輸入未清空');
+    if (await ev(`vis($('trade-error'))`)) throw new Error('成功後仍顯示錯誤');
+});
+await check('自主實戰：快捷鈕（全買 00631L、跳過 1 週）與 Enter 執行', async () => {
+    await ev(`document.querySelector('[data-quick="all631"]').click()`);
+    if (!(Number(await ev(`$('trade-buy631').value`)) > 0)) throw new Error('全買 00631L 未帶入股數');
+    await ev(`document.querySelector('[data-skip="5"]').click()`);
+    if (await ev(`$('trade-act').textContent.trim()`) !== '執行並前進 5 天') throw new Error('執行鈕文字未更新');
+    await ev(`$('trade-skip').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);
+    await waitFor(`$('trade-day').textContent.trim() === '12'`, 'Enter 執行後第 12 天');
+});
+await check('自主實戰：重新整理後進度還在（存檔還原）', async () => {
+    await send('Page.navigate', { url: BASE });
+    await waitFor(`document.querySelector('[data-view]')`, '導覽列');
+    await sleep(600);
+    await goView('trade');
+    await waitFor(`vis($('trade-play')) && $('trade-day').textContent.trim() === '12'`, '還原第 12 天');
+    if (!(await ev(`$('trade-compare').textContent.includes('100 股')`))) throw new Error('持股未還原');
+});
+await check('自主實戰：結算揭曉真實日期，重新整理後仍為結算畫面', async () => {
+    await ev(`$('trade-settle').click()`);
+    await waitFor(`vis($('trade-result')) && !vis($('trade-op'))`, '結算畫面');
+    const txt = await ev(`$('trade-result').innerText`);
+    if (!/(19|20)\d\d\/\d\d\/\d\d ～ (19|20)\d\d\/\d\d\/\d\d/.test(txt)) throw new Error('結算畫面未顯示真實起訖日');
+    await send('Page.navigate', { url: BASE });
+    await waitFor(`document.querySelector('[data-view]')`, '導覽列');
+    await sleep(600);
+    await goView('trade');
+    await waitFor(`vis($('trade-result'))`, '還原後仍為結算畫面');
+});
+await check('自主實戰：再玩一次回開局並清除存檔', async () => {
+    await ev(`$('trade-again').click()`);
+    await waitFor(`vis($('trade-start'))`, '開局畫面');
+    if (await ev(`localStorage.getItem('trade-save-v1')`)) throw new Error('存檔未清除');
+});
+await check('自主實戰：重新開始需二次確認', async () => {
+    await startTrade();
+    await ev(`$('trade-restart').click()`);
+    await waitFor(`vis($('trade-restart-confirm'))`, '二次確認');
+    await ev(`$('trade-restart-no').click()`);
+    await waitFor(`vis($('trade-play')) && !vis($('trade-restart-confirm'))`, '取消後仍在遊戲中');
+    await ev(`$('trade-restart').click()`);
+    await ev(`$('trade-restart-yes').click()`);
+    await waitFor(`vis($('trade-start'))`, '確定後回開局');
+});
+
 console.log('手機版 390');
 await open(390);
 const PAGES = ['home', 'plan', 'trade', 'about'];
@@ -171,6 +260,20 @@ await check('各頁沒有水平溢出（不可左右捲動）', async () => {
         const w = await ev(`document.documentElement.scrollWidth`);
         if (w > 390 + 1) throw new Error(`${view} 頁寬 ${w} 超出手機寬度 390`);
     }
+});
+await check('自主實戰手機版：進行中、結算畫面無水平溢出', async () => {
+    await goView('trade');
+    await startTrade();
+    await tradeAct({ 'trade-buy50': '100', 'trade-skip': '3' }, '4');
+    await sleep(500);
+    let w = await ev(`document.documentElement.scrollWidth`);
+    if (w > 391) throw new Error(`進行中頁寬 ${w} 超出 390`);
+    await ev(`$('trade-settle').click()`);
+    await waitFor(`vis($('trade-result'))`, '結算畫面');
+    await sleep(500);
+    w = await ev(`document.documentElement.scrollWidth`);
+    if (w > 391) throw new Error(`結算頁寬 ${w} 超出 390`);
+    await ev(`$('trade-again').click()`);
 });
 await goView('plan');
 await waitFor(`$('plan-form')`, '投資計畫表單');

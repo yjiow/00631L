@@ -1,0 +1,106 @@
+/* ===== 自主實戰模擬頁（views/trade.html）===== */
+.trade-app { max-width: 1100px; margin: 20px auto; }
+.trade-app [hidden] { display: none !important; }
+.trade-app > section > .panel-card { margin-bottom: 24px; }
+.trade-start { max-width: 640px; margin: 0 auto; }
+.trade-loading { text-align: center; color: var(--text-secondary); }
+
+.trade-desc { color: var(--text-secondary); line-height: 1.7; font-size: 0.9rem; margin-bottom: 16px; }
+.trade-note { font-size: 0.8rem; color: var(--text-muted); margin: 12px 0 16px; }
+.trade-error { color: var(--color-up); font-size: 0.9rem; margin-bottom: 12px; }
+.trade-btn-wide { margin-top: 8px; }
+.trade-start-form { margin-bottom: 4px; }
+
+/* 頂部列 */
+.trade-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.trade-day { font-family: var(--font-num); font-size: 1.25rem; color: var(--neon-blue); }
+.trade-head-btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.trade-head .trade-btn { padding: 5px 12px; font-size: 0.82rem; }
+.trade-confirm { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.85rem; flex-wrap: wrap; }
+.trade-tag { margin-left: 12px; padding: 2px 10px; font-size: 0.8rem; border: 1px solid var(--neon-blue); border-radius: 999px; color: var(--neon-blue); vertical-align: middle; }
+.trade-tag-warn { border-color: var(--color-up); color: var(--color-up); }
+
+.trade-btn {
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    border-radius: 3px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.trade-btn:hover { background: rgba(0, 210, 255, 0.1); }
+.trade-btn-ghost { border-color: rgba(255, 255, 255, 0.25); color: var(--text-secondary); }
+.trade-btn-ghost:hover { background: rgba(255, 255, 255, 0.06); }
+.trade-btn-danger { border-color: var(--color-up); color: var(--color-up); }
+.trade-btn-danger:hover { background: rgba(248, 113, 113, 0.1); }
+
+/* 版面：電腦左圖右操作（右欄固定），手機操作在最上 */
+.trade-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: "charts side" "compare side" "trend side"; grid-template-rows: auto auto 1fr; gap: 20px; align-items: start; }
+.trade-charts { grid-area: charts; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.trade-charts > * { min-width: 0; }
+.trade-compare { grid-area: compare; }
+.trade-trend { grid-area: trend; }
+.trade-layout > * { min-width: 0; }
+.trade-layout .panel-card { margin-bottom: 0; }
+.trade-compare { padding: 16px 20px; }
+.trade-compare .panel-title { margin-bottom: 8px; font-size: 0.95rem; }
+.trade-compare-table th, .trade-compare-table td { padding: 4px 10px; font-size: 0.85rem; }
+.trade-side { grid-area: side; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; padding-right: 2px; }
+.trade-side .panel-card { margin-bottom: 0; padding: 18px 20px; }
+.trade-side .panel-title { font-size: 0.95rem; margin-bottom: 12px; }
+.trade-chart-card .panel-title { margin-bottom: 8px; font-size: 0.85rem; letter-spacing: 0; }
+.trade-chart-box { position: relative; height: 220px; min-width: 0; overflow: hidden; }
+.trade-ma-gap { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); }
+.trade-ma-gap b { font-family: var(--font-num); font-weight: 500; color: var(--text-primary); }
+.trade-ma-gap b.positive { color: var(--color-up); }
+.trade-ma-gap b.negative { color: var(--color-down); }
+.trade-chart-tall { height: 260px; }
+
+/* 操作面板 */
+.trade-prices { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-bottom: 12px; color: var(--text-secondary); font-size: 0.85rem; }
+.trade-prices b { font-family: var(--font-num); color: var(--text-primary); font-weight: 500; }
+.trade-op-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.trade-op-wide { grid-column: span 2; }
+.trade-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.trade-chip { padding: 5px 11px; background: transparent; border: 1px solid rgba(0, 210, 255, 0.4); color: var(--neon-blue); border-radius: 999px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; }
+.trade-chip:hover { background: rgba(0, 210, 255, 0.1); }
+.trade-chip.active { background: rgba(0, 210, 255, 0.2); border-color: var(--neon-blue); }
+.trade-chip-ghost { border-color: rgba(255, 255, 255, 0.25); color: var(--text-secondary); }
+.trade-skip-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; color: var(--text-secondary); font-size: 0.85rem; }
+.trade-skip-row input { width: 64px; padding: 5px 8px; }
+
+/* 兩組對照表 */
+.trade-compare-table th small { display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 400; }
+.trade-compare-table td.positive { color: var(--color-up); }
+.trade-compare-table td.negative { color: var(--color-down); }
+.trade-strategy-note { margin-top: 10px; font-size: 0.82rem; line-height: 1.6; color: var(--text-secondary); }
+
+/* 結算 */
+.trade-verdict { font-family: var(--font-num); font-size: 1.6rem; color: var(--neon-blue); margin-bottom: 8px; }
+.trade-table-wrap { overflow-x: auto; margin-bottom: 16px; }
+.trade-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.trade-table th, .trade-table td { padding: 8px 10px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.trade-table th:first-child, .trade-table td:first-child { text-align: left; color: var(--text-secondary); }
+.trade-table td { font-family: var(--font-num); white-space: nowrap; }
+.trade-table th { color: var(--text-card-title); font-weight: 500; }
+
+/* 右欄（380px）內的結算表：縮字距、標籤可換行，避免對照組欄被截斷 */
+.trade-side .trade-table { font-size: 0.8rem; }
+.trade-side .trade-table th, .trade-side .trade-table td { padding: 7px 4px; }
+.trade-side .trade-table td:first-child { white-space: normal; }
+.trade-side .trade-table-wrap { overflow-x: visible; }
+
+@media (max-width: 1000px) {
+    .trade-layout { grid-template-columns: 1fr; grid-template-areas: "side" "compare" "charts" "trend"; grid-template-rows: none; }
+    .trade-charts { grid-template-columns: 1fr; }
+    .trade-side { position: static; max-height: none; overflow: visible; }
+}
+@media (max-width: 600px) {
+    .trade-app .panel-card { padding: 20px 16px; }
+    .trade-chart-box { height: 200px; }
+    .trade-table { font-size: 0.8rem; }
+    .trade-table th, .trade-table td { padding: 8px 4px; }
+    .trade-table td:first-child { white-space: normal; }
+}

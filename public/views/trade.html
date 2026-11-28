@@ -1,6 +1,109 @@
-<!-- views/trade.html — 自主實戰模擬（建置中） -->
-<div class="panel-card" style="max-width: 850px; margin: 20px auto; padding: 40px;">
-    <div class="panel-title">自主實戰模擬 (TRADE_SIM)</div>
-    <p style="color: var(--text-secondary); line-height: 1.8;">回到歷史上的某一天，逐日自行決定買進或賣出，模擬自己的交易績效。</p>
-    <p style="color: var(--text-muted); margin-top: 16px;">功能建置中 (UNDER_CONSTRUCTION)</p>
+<!-- views/trade.html — 自主實戰模擬（畫面由 src/pages/trade/ 填入；全程不顯示年月日，結算才揭曉） -->
+<div id="trade-app" class="trade-app">
+
+    <!-- 載入中 / 錯誤 -->
+    <div id="trade-loading" class="panel-card trade-loading">載入資料中…</div>
+
+    <!-- 開局 -->
+    <section id="trade-start" class="panel-card trade-start" hidden>
+        <div class="panel-title">自主實戰模擬 (TRADE_SIM)</div>
+        <p class="trade-desc">被丟到歷史上隨機的一天，逐日決定現金加減碼與買賣 0050 / 00631L，並與「推薦策略」（50/50、20% 再平衡）比較。遊戲中不顯示日期，結算時才揭曉。</p>
+        <div class="plan-form trade-start-form">
+            <label class="plan-field">
+                <span>初始金額（元，下限 100,000）</span>
+                <input type="text" id="trade-initial" data-money inputmode="numeric" value="1,000,000" autocomplete="off">
+            </label>
+            <label class="plan-field">
+                <span>手續費折扣（折）</span>
+                <input type="number" id="trade-discount" min="0.1" max="10" step="0.1" value="6">
+            </label>
+        </div>
+        <p class="trade-desc trade-note">手續費 = 成交金額 × 0.1425% × 折扣（無條件捨去，不低於 1 元）；賣出另收 ETF 證交稅 0.1%。折扣請填 0.1～10 折，依您的券商填寫。</p>
+        <p id="trade-start-error" class="trade-error" hidden></p>
+        <button type="button" id="trade-begin" class="btn-primary trade-btn-wide">開始遊戲</button>
+    </section>
+
+    <!-- 進行中 / 結算 -->
+    <section id="trade-play" hidden>
+        <div class="trade-layout">
+            <!-- 右欄（手機排最上）：操作與結算；電腦版固定不隨捲動 -->
+            <aside class="trade-side">
+                <!-- 每日操作 -->
+                <div id="trade-op" class="panel-card trade-op">
+                <div class="trade-head">
+                    <div class="trade-day">第 <span id="trade-day">1</span> 天<span id="trade-settled-tag" class="trade-tag" hidden>已結算</span></div>
+                    <div class="trade-head-btns" id="trade-head-btns">
+                        <button type="button" id="trade-settle" class="trade-btn">結算</button>
+                        <button type="button" id="trade-restart" class="trade-btn trade-btn-ghost">重新開始</button>
+                        <span id="trade-restart-confirm" class="trade-confirm" hidden>
+                            確定放棄目前進度？
+                            <button type="button" id="trade-restart-yes" class="trade-btn trade-btn-danger">確定</button>
+                            <button type="button" id="trade-restart-no" class="trade-btn trade-btn-ghost">取消</button>
+                        </span>
+                    </div>
+                </div>
+                    <p id="trade-day1-note" class="trade-desc trade-note" hidden>初始金額已入帳為現金。</p>
+                    <div class="trade-prices">
+                        <div>00631L <b id="trade-px-631">—</b></div>
+                        <div>0050 <b id="trade-px-50">—</b></div>
+                        <div>現金 <b id="trade-cash-now">—</b></div>
+                    </div>
+                    <div class="trade-op-form">
+                        <label class="plan-field trade-op-wide">
+                            <span>現金加減碼（正加負減，元）</span>
+                            <input type="text" id="trade-cash" data-money="signed" inputmode="text" value="0" autocomplete="off">
+                        </label>
+                        <label class="plan-field"><span>買進 0050（股）</span><input type="number" id="trade-buy50" min="0" step="1" value="0"></label>
+                        <label class="plan-field"><span>賣出 0050（股）</span><input type="number" id="trade-sell50" min="0" step="1" value="0"></label>
+                        <label class="plan-field"><span>買進 00631L（股）</span><input type="number" id="trade-buy631" min="0" step="1" value="0"></label>
+                        <label class="plan-field"><span>賣出 00631L（股）</span><input type="number" id="trade-sell631" min="0" step="1" value="0"></label>
+                    </div>
+                    <div class="trade-chips" aria-label="快捷買賣">
+                        <button type="button" class="trade-chip" data-quick="all631">全買 00631L</button>
+                        <button type="button" class="trade-chip" data-quick="all50">全買 0050</button>
+                        <button type="button" class="trade-chip" data-quick="half">各半買</button>
+                        <button type="button" class="trade-chip" data-quick="sellall">全部賣出</button>
+                        <button type="button" class="trade-chip trade-chip-ghost" data-quick="clear">清空</button>
+                    </div>
+                    <div class="trade-skip-row">
+                        <span>跳過交易日</span>
+                        <div class="trade-chips">
+                            <button type="button" class="trade-chip" data-skip="1">1 天</button>
+                            <button type="button" class="trade-chip" data-skip="5">1 週</button>
+                            <button type="button" class="trade-chip" data-skip="20">1 月</button>
+                            <button type="button" class="trade-chip" data-skip="60">3 月</button>
+                        </div>
+                        <input type="number" id="trade-skip" min="1" step="1" value="1" aria-label="跳過交易日數">
+                    </div>
+                    <p class="trade-desc trade-note">順序：賣出 → 現金加減碼 → 買進；不足整筆拒絕。按 Enter 也可執行。</p>
+                    <p id="trade-error" class="trade-error" hidden></p>
+                    <button type="button" id="trade-act" class="btn-primary trade-btn-wide">執行並前進 1 天</button>
+                </div>
+
+                <!-- 結算 -->
+                <div id="trade-result" class="panel-card trade-result" hidden></div>
+            </aside>
+
+            <div class="trade-charts">
+                <div class="panel-card trade-chart-card">
+                    <div class="panel-title">00631L 近 22 日 + 5/20MA（還原價）</div>
+                    <div class="trade-chart-box"><canvas id="trade-chart-631"></canvas></div>
+                    <div class="trade-ma-gap" id="trade-gap-631"></div>
+                </div>
+                <div class="panel-card trade-chart-card">
+                    <div class="panel-title">0050 近 22 日 + 5/20MA（還原價）</div>
+                    <div class="trade-chart-box"><canvas id="trade-chart-50"></canvas></div>
+                    <div class="trade-ma-gap" id="trade-gap-50"></div>
+                </div>
+            </div>
+
+            <!-- 兩組對照 -->
+            <div id="trade-compare" class="panel-card trade-compare"></div>
+
+            <div class="panel-card trade-chart-card trade-trend">
+                <div class="panel-title">總資產走勢</div>
+                <div class="trade-chart-box trade-chart-tall"><canvas id="trade-chart-trend"></canvas></div>
+            </div>
+        </div>
+    </section>
 </div>
