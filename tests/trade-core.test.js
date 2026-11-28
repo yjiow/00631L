@@ -1,7 +1,7 @@
 // core/trade/ 自主實戰核心測試：資料對齊、操作規則、對照組、結算、存檔重播、與計畫頁引擎逐位比對（npm test）
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { buildSeries, pickStartIdx, startRange, chartWindow, maGaps } from '../src/core/trade/series.js';
+import { buildSeries, pickStartIdx, startRange, chartWindow, maGaps, POST_LISTING_SHARE } from '../src/core/trade/series.js';
 import { createGame, toSave, replay } from '../src/core/trade/game.js';
 import { tradeCost } from '../src/core/plan/fees.js';
 import { simulatePlan, toSeries } from '../src/core/plan/simulate.js';
@@ -51,6 +51,37 @@ describe('series', () => {
         }
         expect(pickStartIdx(real, () => 0)).toBe(lo);
         expect(pickStartIdx(real, () => 0.9999999)).toBe(hi);
+    });
+
+    it('pickStartIdx：約 70% 落在 00631L 上市後（確定性亂數大量抽樣）', () => {
+        let seed = 12345; // mulberry32
+        const rand = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        const split = real.dates.findIndex(d => d >= '2014-10-31');
+        const N = 20000;
+        let post = 0;
+        for (let i = 0; i < N; i++) if (pickStartIdx(real, rand) >= split) post++;
+        expect(POST_LISTING_SHARE).toBe(0.7);
+        expect(post / N).toBeGreaterThan(0.68);
+        expect(post / N).toBeLessThan(0.72);
+    });
+
+    it('pickStartIdx：區段邊界（u 約 0.3 起為上市後）與單一區段退路', () => {
+        const { lo, hi } = startRange(real);
+        const split = real.dates.findIndex(d => d >= '2014-10-31');
+        expect(pickStartIdx(real, () => 0.2999999)).toBe(split - 1);
+        expect(pickStartIdx(real, () => 0.3000001)).toBe(split);
+        // 全在上市前（合成 2000～2010）：整段均勻，邊界不變
+        const old = synth(() => 10, () => 10, 2010);
+        const r1 = startRange(old);
+        expect(pickStartIdx(old, () => 0)).toBe(r1.lo);
+        expect(pickStartIdx(old, () => 0.9999999)).toBe(r1.hi);
+        // 全在上市後（連續日期自 2015-01-01 起約 4.1 年）：整段均勻
+        const dates = Array.from({ length: 1500 }, (_, i) => new Date(Date.UTC(2015, 0, 1) + i * 864e5).toISOString().slice(0, 10));
+        const fresh = { dates, p631: dates.map(() => 10), p50: dates.map(() => 10) };
+        const r2 = startRange(fresh);
+        expect(pickStartIdx(fresh, () => 0)).toBe(r2.lo);
+        expect(pickStartIdx(fresh, () => 0.9999999)).toBe(r2.hi);
+        expect(hi).toBeGreaterThan(lo);
     });
 
     it('資料太短時 pickStartIdx 回 null', () => {

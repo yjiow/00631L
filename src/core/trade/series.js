@@ -48,11 +48,23 @@ export function simulatedShare(series, startIdx, endIdx) {
     return sim / n;
 }
 
+export const POST_LISTING_SHARE = 0.7; // 抽到 00631L 上市後（兩檔 ETF 都已上市、價格為真實值）的機率
+
+// 在 [from, to] 內依 u（0 <= u < 1）均勻取索引
+const pickIn = (from, to, u) => from + Math.floor(u * (to - from + 1));
+
 // 隨機抽起始日索引（rand 可注入供測試）；無可用範圍回傳 null
-export function pickStartIdx(series, rand = Math.random) {
+// 單次亂數 u：u < 1 − postShare 落在上市前區段（含推算價格）、其餘落在上市後區段，各段內均勻；某段為空時整段改抽另一段
+// u = 0 恆為可抽範圍最小索引、u 趨近 1 恆為最大索引
+export function pickStartIdx(series, rand = Math.random, postShare = POST_LISTING_SHARE) {
     const r = startRange(series);
     if (!r) return null;
-    return r.lo + Math.floor(rand() * (r.hi - r.lo + 1));
+    const split = Math.min(Math.max(lowerBound(series.dates, LISTING_631L), r.lo), r.hi + 1); // 上市後區段起點
+    const u = rand();
+    if (split <= r.lo) return pickIn(r.lo, r.hi, u);   // 沒有上市前區段
+    if (split > r.hi) return pickIn(r.lo, r.hi, u);    // 沒有上市後區段
+    const pre = 1 - postShare;
+    return u < pre ? pickIn(r.lo, split - 1, u / pre) : pickIn(split, r.hi, (u - pre) / postShare);
 }
 
 // 最近 n 個交易日（含 idx 當天）的價格、5MA（wk）與 20MA（ma）；MA 以更早資料計算，不足筆數用現有筆數平均
