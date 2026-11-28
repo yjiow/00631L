@@ -52,6 +52,25 @@ body::before {
     user-select: none;
 }
 
+/* ===== 鍵盤焦點：滑鼠點擊不顯示，鍵盤聚焦顯示電光藍外框 ===== */
+:focus-visible {
+    outline: 2px solid var(--neon-blue);
+    outline-offset: 2px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ===== 減少動態效果（系統「減少動態效果」偏好）：全站動畫與過場壓到幾乎 0 ===== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 /* ===== 頁尾 ===== */
 footer {
     text-align: center;

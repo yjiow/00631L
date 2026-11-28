@@ -3,6 +3,13 @@
  * 全站圖表共用樣式：霓虹座標軸、玻璃提示框、折線、降採樣
  */
 
+import Chart from 'chart.js/auto';
+
+// 系統偏好「減少動態效果」：全站圖表關閉動畫（未設定 animation 的圖表走 defaults；有指定的用 chartAnimation）
+const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reduceMotion) Chart.defaults.animation = false;
+export const chartAnimation = reduceMotion ? false : { duration: 400, easing: 'easeOutQuart' };
+
 export const neonScales = yCallback => ({
     x: {
         grid:  { color: 'rgba(255, 255, 255, 0.05)' },

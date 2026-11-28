@@ -259,7 +259,6 @@
     background: var(--bg-main);
     border: 1px solid var(--neon-blue);
     border-radius: 3px;
-    outline: none;
 }
 
 .year-slider-group { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }

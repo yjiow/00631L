@@ -21,6 +21,7 @@ nav {
     letter-spacing: 2px;
     user-select: none;
     white-space: nowrap;
+    text-decoration: none; /* logo 為 <a>，維持原外觀 */
 }
 
 .menu {
@@ -107,6 +108,7 @@ nav.nav-collapsed .menu {
 }
 nav.nav-collapsed.menu-open .menu { display: flex; animation: menu-drop 0.2s ease-out; }
 nav.nav-collapsed .menu-item > a { padding: 14px 24px; font-size: 0.95rem; }
+nav.nav-collapsed .menu-item > a:focus-visible { outline-offset: -2px; } /* 選單 overflow:hidden，焦點框內縮避免被裁切 */
 nav.nav-collapsed .nav-indicator { display: none; }
 /* 目前頁：左側光條（同電腦版底線：項目高 50%、淡光暈 0.3）；光團同電腦版僅 hover 出現 */
 nav.nav-collapsed .menu-item > a::after {

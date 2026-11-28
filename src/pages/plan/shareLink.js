@@ -6,6 +6,7 @@
  */
 
 import { shareUrl } from '../../ui/shareButton.js';
+import { viewUrl } from '../../ui/routeParams.js';
 
 const TOP_KEYS = { version: 'v', target: 't', years: 'y', initialCapital: 'ic', stockRatio: 'sr', stockRatioSchedule: 'ss', cashflows: 'cf', purchase: 'pu', rebalance: 'rb', costs: 'co', cashRate: 'cr', dipBuy: 'db', inflationRate: 'ir' };
 const CF_KEYS = { name: 'n', amount: 'a', period: 'p', month: 'm', day: 'd', fromYear: 'fy', toYear: 'ty', inflation: 'inf' };
@@ -82,7 +83,7 @@ export async function buildShareUrl(plan) {
 export async function consumeSharedPlan() {
     const raw = new URLSearchParams(location.search).get('plan');
     if (!raw) return null;
-    history.replaceState(null, '', location.pathname);
+    history.replaceState(null, '', location.pathname + viewUrl('plan')); // 保留 view=plan，重整仍停在計畫頁
     try {
         const bytes = fromBase64Url(raw.slice(1));
         const json = raw[0] === 'g' ? await gunzip(bytes) : bytes;

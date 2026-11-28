@@ -147,6 +147,8 @@ await check('投資計畫：分享連結產出、開啟後帶回參數並清除�
     await waitFor(`document.querySelector('[name=years]')?.value === '9'`, '連結帶入年數 9', 8000);
     await waitFor(`$('rs-success')?.textContent.trim()`, '帶入後自動模擬有結果');
     if (/plan=/.test(await ev(`location.search`))) throw new Error('網址列未清除 plan 參數');
+    if (!/view=plan/.test(await ev(`location.search`))) throw new Error('清除 plan 後網址未保留 view=plan');
+    if (!(await ev(`document.title`)).startsWith('投資計畫模擬')) throw new Error('分享連結開啟後不是投資計畫頁');
 });
 
 await check('投資計畫：點分享的當下同步呼叫系統分享（iPhone Safari 須在手勢內，不能先等壓縮）', async () => {
@@ -309,6 +311,62 @@ await check('投資計畫手機版：步驟左右切換', async () => {
 await check('投資計畫手機版：開始模擬後有結果', async () => {
     await ev(`document.querySelector('.plan-submit').click()`);
     await waitFor(`$('rs-success')?.textContent.trim()`, '結果');
+});
+
+// ---------- 導覽：鍵盤、網址、title、減少動態 ----------
+const key = async (k, code, vk, text) => {
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: k, code, windowsVirtualKeyCode: vk, ...(text && { text }) });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code, windowsVirtualKeyCode: vk });
+};
+const TITLE_SUFFIX = '｜正2資產模擬實驗室';
+await open(1440);
+await check('導覽鍵盤：Tab 聚焦導覽連結（有焦點外框）、Enter 切頁', async () => {
+    await ev(`document.activeElement?.blur()`);
+    let onPlan = false;
+    for (let i = 0; i < 8 && !onPlan; i++) {
+        await key('Tab', 'Tab', 9);
+        onPlan = await ev(`document.activeElement?.matches('.menu a[data-view="plan"]')`);
+    }
+    if (!onPlan) throw new Error('Tab 未能聚焦到「投資計畫模擬」連結');
+    if (!(await ev(`document.activeElement.matches(':focus-visible') && getComputedStyle(document.activeElement).outlineStyle !== 'none'`))) throw new Error('鍵盤聚焦沒有可見外框');
+    await key('Enter', 'Enter', 13, '\r');
+    await waitFor(`document.title.startsWith('投資計畫模擬') && $('plan-form')`, 'Enter 後進入投資計畫');
+    if (!(await ev(`document.querySelector('.menu a[data-view="plan"]').getAttribute('aria-current') === 'page'`))) throw new Error('目前頁缺 aria-current');
+    if (!(await ev(`document.querySelector('nav').getAttribute('aria-label') === '主選單'`))) throw new Error('nav 缺 aria-label');
+});
+await check('切頁改網址：點導覽後為 ?view=…，history.back() 回上一頁', async () => {
+    await goView('trade');
+    if (!(await ev(`location.search`)).includes('view=trade')) throw new Error('網址未變成 ?view=trade');
+    await ev(`history.back()`);
+    await waitFor(`location.search.includes('view=plan') && document.title.startsWith('投資計畫模擬')`, '上一頁回到投資計畫');
+});
+await check('直接開網址：?view=trade / about / 非法值', async () => {
+    await open(1440, BASE + '?view=trade');
+    await waitFor(`document.title.startsWith('自主實戰模擬')`, '?view=trade → 自主實戰');
+    await open(1440, BASE + '?view=about');
+    await waitFor(`document.title.startsWith('關於我')`, '?view=about → 關於我');
+    await open(1440, BASE + '?view=xxx');
+    await waitFor(`document.title.startsWith('策略概覽') && $('roi-00631')`, '?view=xxx → 首頁');
+    if (!(await ev(`location.search`)).includes('view=home')) throw new Error('非法值未校正為 ?view=home');
+});
+await check('各頁 document.title 正確', async () => {
+    await open(1440);
+    for (const [v, t] of [['home', '策略概覽'], ['plan', '投資計畫模擬'], ['trade', '自主實戰模擬'], ['about', '關於我']]) {
+        await goView(v);
+        const got = await ev(`document.title`);
+        if (got !== t + TITLE_SUFFIX) throw new Error(`${v} 的 title 是「${got}」`);
+    }
+});
+await check('減少動態效果：首頁打字機立即顯示完整標語', async () => {
+    await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+    try {
+        await open(1440);
+        await waitFor(`$('typewriter-text')?.innerText.length > 0`, '打字機文字');
+        const t = await ev(`$('typewriter-text').innerText`);
+        if (t !== '模擬過去，掌控您的財務未來。') throw new Error(`打字機文字不完整：「${t}」`);
+    } finally {
+        await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
+    }
 });
 
 // ---------- 結果 ----------

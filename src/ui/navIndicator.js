@@ -42,6 +42,9 @@ function place(animate = false) {
     const x = r.left - m.left + (r.width - w) / 2;
     const dist = curX === null ? 0 : x - curX;
 
+    // 系統偏好「減少動態效果」：直接跳位，不跑光點與電弧
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) animate = false;
+
     bar.classList.toggle('no-anim', !animate || dist === 0);
     if (animate && dist !== 0) {
         bar.style.setProperty('--trail', TRAIL + 'px');

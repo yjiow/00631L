@@ -70,11 +70,11 @@ describe('分享連結：讀取', () => {
         expect(history.replaceState).not.toHaveBeenCalled();
     });
 
-    it('讀到後立即清除網址列（避免重整或之後保存蓋掉）', async () => {
+    it('讀到後立即清除 plan 參數（避免重整或之後保存蓋掉），保留 ?view=plan', async () => {
         const url = await buildShareUrl(FULL_PLAN);
         setLocation(searchOf(url));
         await consumeSharedPlan();
-        expect(history.replaceState).toHaveBeenCalledWith(null, '', '/');
+        expect(history.replaceState).toHaveBeenCalledWith(null, '', '/?view=plan');
     });
 
     it('亂碼 / 損毀的連結 → null，不拋錯', async () => {

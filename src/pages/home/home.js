@@ -196,6 +196,8 @@ function setupDateEdit(labelId, isStart) {
 // 打字機特效（首頁標語）
 function runTypewriter(text, el, speed = 50) {
     if (!el) return;
+    // 系統偏好「減少動態效果」：直接顯示全文，不建立計時器
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.innerText = text; return; }
     el.innerText = '';
     let i = 0;
     const timer = setInterval(() => {

@@ -4,7 +4,7 @@
  */
 
 import Chart from 'chart.js/auto';
-import { neonScales, glassTooltip, neonLine, downsampleIdx, periodLast } from './chartTheme.js';
+import { neonScales, glassTooltip, neonLine, downsampleIdx, periodLast, chartAnimation } from './chartTheme.js';
 import { assetSeries } from './assetSeries.js';
 import { fmtMoney, ym } from '../pages/plan/planFormat.js';
 
@@ -194,7 +194,7 @@ export function renderAssetChart(daily, mddPeriod = null, mdd = 0, dailyA = null
                 tooltip: { ...glassTooltip, callbacks: { label: it => `${it.dataset.label} ${fmtMoney(it.raw)}` } }
             },
             scales: planScales(d => d.slice(0, 7).replace('-', '/')),
-            animation: { duration: 400, easing: 'easeOutQuart' }
+            animation: chartAnimation
         },
         plugins: mddPeriod ? [mddMarker(mddPeriod, mdd, labels)] : []
     });
